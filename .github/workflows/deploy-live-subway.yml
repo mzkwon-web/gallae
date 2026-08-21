@@ -74,39 +74,56 @@ jobs:
           Path('data/subway.json').write_text(json.dumps(subway_payload, ensure_ascii=False, indent=2), encoding='utf-8')
 
           # Bus: user's "롯데캐슬 정류장" = ARS 18514
-          # Seoul bus API supports ARS-ID directly and returns first/second arrival details.
+          # Seoul bus API supports ARS-ID directly and returns XML.
           bus_key = os.environ.get('DATA_GO_KR_BUS_API_KEY')
           bus_payload = {'status':'error','stop_name':'롯데캐슬 정류장','ars_id':'18514','updated_at':datetime.now(kst).isoformat(timespec='seconds'),'arrivals':[]}
+
+          def parse_bus(xml_bytes):
+              root = ET.fromstring(xml_bytes)
+              header_cd = (root.findtext('.//headerCd') or '').strip()
+              header_msg = (root.findtext('.//headerMsg') or '').strip()
+              if header_cd not in ('0','00',''):
+                  raise RuntimeError(f'{header_cd}: {header_msg}')
+              arrivals = []
+              for item in root.findall('.//itemList'):
+                  def t(name):
+                      v = item.findtext(name)
+                      return v.strip() if isinstance(v, str) else v
+                  arrivals.append({
+                      'route': t('rtNm') or t('busRouteAbrv') or t('busRouteNm'),
+                      'first_message': t('arrmsg1'),
+                      'first_seconds': t('traTime1'),
+                      'first_stops': t('sectOrd1'),
+                      'second_message': t('arrmsg2'),
+                      'second_seconds': t('traTime2'),
+                      'second_stops': t('sectOrd2'),
+                      'destination': t('stationNm1'),
+                  })
+              return arrivals
+
           if bus_key:
-              try:
-                  params = urllib.parse.urlencode({'serviceKey': bus_key, 'arsId': '18514'})
-                  url = 'http://ws.bus.go.kr/api/rest/stationinfo/getStationByUid?' + params
-                  req = urllib.request.Request(url, headers={'User-Agent': 'gallae-poc/1.0'})
-                  with urllib.request.urlopen(req, timeout=20) as response:
-                      xml_bytes = response.read()
-                  root = ET.fromstring(xml_bytes)
-                  header_cd = root.findtext('.//headerCd') or ''
-                  header_msg = root.findtext('.//headerMsg') or ''
-                  if header_cd not in ('0','00',''):
-                      raise RuntimeError(f'{header_cd}: {header_msg}')
-                  arrivals = []
-                  for item in root.findall('.//itemList'):
-                      def t(name):
-                          v = item.findtext(name)
-                          return v.strip() if isinstance(v, str) else v
-                      arrivals.append({
-                          'route': t('rtNm') or t('busRouteAbrv') or t('busRouteNm'),
-                          'first_message': t('arrmsg1'),
-                          'first_seconds': t('traTime1'),
-                          'first_stops': t('sectOrd1'),
-                          'second_message': t('arrmsg2'),
-                          'second_seconds': t('traTime2'),
-                          'second_stops': t('sectOrd2'),
-                          'destination': t('stationNm1'),
-                      })
-                  bus_payload.update(status='ok', arrivals=arrivals)
-              except Exception as e:
-                  bus_payload['error'] = str(e)
+              errors = []
+              # data.go.kr may expose either an encoded or decoded service key.
+              # Try a decoded form first, then the original value without ever logging the key.
+              candidates = []
+              decoded = urllib.parse.unquote(bus_key)
+              for candidate in (decoded, bus_key):
+                  if candidate and candidate not in candidates:
+                      candidates.append(candidate)
+              for candidate in candidates:
+                  try:
+                      query = 'serviceKey=' + urllib.parse.quote(candidate, safe='') + '&arsId=18514'
+                      url = 'http://ws.bus.go.kr/api/rest/stationinfo/getStationByUid?' + query
+                      req = urllib.request.Request(url, headers={'User-Agent': 'gallae-poc/1.0'})
+                      with urllib.request.urlopen(req, timeout=20) as response:
+                          xml_bytes = response.read()
+                      arrivals = parse_bus(xml_bytes)
+                      bus_payload.update(status='ok', arrivals=arrivals)
+                      break
+                  except Exception as e:
+                      errors.append(str(e))
+              if bus_payload['status'] != 'ok':
+                  bus_payload['error'] = ' / '.join(errors[-2:]) or 'bus api request failed'
           else:
               bus_payload['error'] = 'DATA_GO_KR_BUS_API_KEY is missing'
           Path('data/bus.json').write_text(json.dumps(bus_payload, ensure_ascii=False, indent=2), encoding='utf-8')
