@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="갈래 — 나에게 맞는 이동을 판단하는 AI 이동 비서 PoC" />
+  <title>갈래 | AI 이동 비서</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg:#f7f7f5;
+      --ink:#171717;
+      --muted:#666;
+      --line:#deded9;
+      --card:#fff;
+      --accent:#111;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Pretendard,"Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink)}
+    main{max-width:980px;margin:0 auto;padding:72px 24px 88px}
+    .eyebrow{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    h1{font-size:clamp(56px,10vw,112px);line-height:.94;letter-spacing:-.06em;margin:18px 0 24px}
+    .lead{max-width:720px;font-size:clamp(22px,3vw,34px);line-height:1.35;letter-spacing:-.03em;margin:0 0 56px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0 64px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px;min-height:190px}
+    .num{font-size:13px;color:var(--muted);margin-bottom:44px}
+    .card h2{font-size:24px;letter-spacing:-.03em;margin:0 0 10px}
+    .card p{font-size:16px;line-height:1.6;color:#4d4d4d;margin:0}
+    .statement{border-top:1px solid var(--line);padding-top:34px;display:grid;grid-template-columns:1fr 2fr;gap:24px}
+    .statement h3{font-size:16px;margin:0;color:var(--muted)}
+    .statement p{font-size:28px;line-height:1.45;letter-spacing:-.03em;margin:0}
+    footer{margin-top:80px;padding-top:24px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+    @media(max-width:760px){main{padding-top:48px}.grid{grid-template-columns:1fr}.statement{grid-template-columns:1fr}.card{min-height:auto}.num{margin-bottom:24px}}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">Personalized Mobility Decision Assistant · PoC</div>
+    <h1>갈래</h1>
+    <p class="lead">가장 빠른 길보다, 나에게 맞는 길. 도착해야 하는 시간과 실제 이동 습관을 바탕으로 언제, 어떻게 나갈지 판단하는 AI 이동 비서입니다.</p>
+
+    <section class="grid" aria-label="갈래 핵심 기능">
+      <article class="card">
+        <div class="num">01</div>
+        <h2>도착시간에서 역산</h2>
+        <p>목적지와 도착해야 하는 시간을 입력하면 집에서 언제 나가야 하는지부터 계산합니다.</p>
+      </article>
+      <article class="card">
+        <div class="num">02</div>
+        <h2>여러 교통수단 비교</h2>
+        <p>버스, 지하철, GTX, 택시, 자전거 등 실제 사용할 수 있는 이동 조합을 함께 비교합니다.</p>
+      </article>
+      <article class="card">
+        <div class="num">03</div>
+        <h2>나에게 맞게 판단</h2>
+        <p>날씨, 실시간 교통과 사용자의 이동 경험·선호를 반영해 단순 최단시간이 아닌 추천을 만듭니다.</p>
+      </article>
+    </section>
+
+    <section class="statement">
+      <h3>Why Gallae?</h3>
+      <p>“어디로 갈래? 어떻게 갈래? 몇 시에 갈래?”<br />여러 길의 갈래 중 오늘 나에게 맞는 선택을 찾습니다.</p>
+    </section>
+
+    <footer>Gallae · AI Mobility Assistant · Proof of Concept</footer>
+  </main>
+</body>
+</html>
