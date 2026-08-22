@@ -1,8 +1,8 @@
 {
   "overall_status": "degraded",
-  "started_at": "2026-08-22T22:59:54+09:00",
-  "finished_at": "2026-08-22T22:59:59+09:00",
-  "duration_seconds": 5.22,
+  "started_at": "2026-08-22T23:30:14+09:00",
+  "finished_at": "2026-08-22T23:31:13+09:00",
+  "duration_seconds": 58.88,
   "subway": {
     "status": "ok",
     "arrival_count": 4,
@@ -20,9 +20,9 @@
       "error": "HTTP Error 401: Unauthorized"
     },
     "gyeonggi": {
-      "status": "ok",
+      "status": "error",
       "test_station_id": "200000078",
-      "arrival_count": 15
+      "error": "<urlopen error timed out>"
     }
   }
 }

@@ -2,43 +2,43 @@
   "status": "ok",
   "station": "가산디지털단지",
   "line": "7호선",
-  "updated_at": "2026-08-22T22:59:54+09:00",
+  "updated_at": "2026-08-22T23:30:14+09:00",
   "arrivals": [
     {
-      "destination": "도봉산",
+      "destination": "청담",
       "direction": "상행",
-      "train_line": "도봉산행 - 남구로방면",
+      "train_line": "청담행 - 남구로방면",
       "arrival_message": "전역 출발",
       "current_location": "철산",
-      "train_no": "7320",
-      "received_at": "2026-08-22 22:59:09"
+      "train_no": "7326",
+      "received_at": "2026-08-22 23:29:50"
     },
     {
-      "destination": "태릉입구",
+      "destination": "내방",
       "direction": "상행",
-      "train_line": "태릉입구행 - 남구로방면",
-      "arrival_message": "12분 후 (온수)",
-      "current_location": "온수",
-      "train_no": "7322",
-      "received_at": "2026-08-22 22:59:09"
-    },
-    {
-      "destination": "석남",
-      "direction": "하행",
-      "train_line": "석남행 - 철산방면",
-      "arrival_message": "9분 후 (보라매)",
-      "current_location": "보라매",
-      "train_no": "7309",
-      "received_at": "2026-08-22 22:59:20"
+      "train_line": "내방행 - 남구로방면 (막차)",
+      "arrival_message": "1분 후 (까치울)",
+      "current_location": "까치울",
+      "train_no": "7328",
+      "received_at": "2026-08-22 23:29:50"
     },
     {
       "destination": "온수",
       "direction": "하행",
       "train_line": "온수행 - 철산방면",
-      "arrival_message": "15분 후 (상도(중앙대앞))",
-      "current_location": "상도(중앙대앞)",
-      "train_no": "7311",
-      "received_at": "2026-08-22 22:59:20"
+      "arrival_message": "전역 출발",
+      "current_location": "남구로",
+      "train_no": "7315",
+      "received_at": "2026-08-22 23:29:40"
+    },
+    {
+      "destination": "석남",
+      "direction": "하행",
+      "train_line": "석남행 - 철산방면",
+      "arrival_message": "1분 후 (보라매)",
+      "current_location": "보라매",
+      "train_no": "7317",
+      "received_at": "2026-08-22 23:29:40"
     }
   ]
 }
