@@ -8,7 +8,7 @@ on:
     - cron: '*/10 * * * *'
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -30,7 +30,7 @@ jobs:
         env:
           SEOUL_API_KEY: ${{ secrets.SEOUL_API_KEY }}
           SEOUL_SUBWAY_API_KEY: ${{ secrets.SEOUL_SUBWAY_API_KEY }}
-          GYEONGGI_BUS_API_KEY: ${{ secrets.DATA_GO_KR_BUS_API_KEY }}
+          GYEONGGI_BUS_API_KEY: ${{ secrets.GYEONGGI_BUS_API_KEY }}
         run: |
           python - <<'PY'
           import json, os, time, urllib.parse, urllib.request
@@ -208,29 +208,6 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
-
-      - name: Publish runtime diagnostics
-        run: |
-          mkdir -p /tmp/gallae-runtime/data
-          cp data/subway.json data/bus.json data/last-run.json /tmp/gallae-runtime/data/
-          git config user.name "gallae-runtime-bot"
-          git config user.email "actions@users.noreply.github.com"
-          if git ls-remote --exit-code --heads origin runtime-status >/dev/null 2>&1; then
-            git fetch origin runtime-status
-            git switch -C runtime-status origin/runtime-status
-            git rm -rf . >/dev/null 2>&1 || true
-          else
-            git switch --orphan runtime-status
-            git rm -rf . >/dev/null 2>&1 || true
-          fi
-          mkdir -p data
-          cp /tmp/gallae-runtime/data/*.json data/
-          touch .nojekyll
-          git add data .nojekyll
-          if ! git diff --cached --quiet; then
-            git commit -m "Update runtime transit status [skip ci]"
-            git push origin runtime-status
-          fi
 
       - name: Deploy to GitHub Pages
         id: deployment
