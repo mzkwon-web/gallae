@@ -2,6 +2,34 @@
   "status": "ok",
   "station": "가산디지털단지",
   "line": "7호선",
-  "updated_at": "2026-08-23T04:31:34+09:00",
-  "arrivals": []
+  "updated_at": "2026-08-23T04:49:36+09:00",
+  "arrivals": [
+    {
+      "destination": "도봉산",
+      "direction": "상행",
+      "train_line": "도봉산행 - 남구로방면",
+      "arrival_message": "50분 후 (온수)",
+      "current_location": "온수",
+      "train_no": "7012",
+      "received_at": "2026-08-23 04:49:25"
+    },
+    {
+      "destination": "장암",
+      "direction": "상행",
+      "train_line": "장암행 - 남구로방면",
+      "arrival_message": "60분 후 (온수)",
+      "current_location": "온수",
+      "train_no": "7014",
+      "received_at": "2026-08-23 04:49:25"
+    },
+    {
+      "destination": "석남",
+      "direction": "하행",
+      "train_line": "석남행 - 철산방면",
+      "arrival_message": "47분 후 (신풍)",
+      "current_location": "신풍",
+      "train_no": "7003",
+      "received_at": "2026-08-23 04:49:15"
+    }
+  ]
 }
