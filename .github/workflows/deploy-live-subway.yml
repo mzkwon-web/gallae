@@ -34,7 +34,7 @@ jobs:
           DATA_GO_KR_BUS_API_KEY: ${{ secrets.DATA_GO_KR_BUS_API_KEY }}
         run: |
           python - <<'PY'
-          import json, os, urllib.parse, urllib.request
+          import json, os, urllib.parse, urllib.request, urllib.error
           from datetime import datetime, timezone, timedelta
           from pathlib import Path
 
@@ -72,30 +72,45 @@ jobs:
               subway_payload['error'] = 'SEOUL_SUBWAY_API_KEY is missing'
           Path('data/subway.json').write_text(json.dumps(subway_payload, ensure_ascii=False, indent=2), encoding='utf-8')
 
-          # Bus: TAGO bus-arrival API. User-facing stop number is 18514.
-          # Seoul city code is 11. Seoul's internal stop id is tested safely from known candidates.
+          # Bus: TAGO bus-arrival API
           bus_key = os.environ.get('DATA_GO_KR_BUS_API_KEY')
           bus_payload = {
               'status':'error', 'stop_name':'롯데캐슬 정류장', 'ars_id':'18514',
               'updated_at':now, 'arrivals':[]
           }
 
+          def safe_http_error(err):
+              try:
+                  body = err.read().decode('utf-8', errors='replace').strip()
+              except Exception:
+                  body = ''
+              # Never expose request URLs or secret values. Keep only server error body.
+              if len(body) > 600:
+                  body = body[:600]
+              return f'HTTP {err.code}: {body or err.reason}'
+
           def call_tago(key, node_id):
-              base = 'https://apis.data.go.kr/1613000/ArvlInfoInqireService/getSttnAcctoArvlPrearngeInfoList'
-              params = {
-                  'serviceKey': urllib.parse.unquote(key),
-                  'pageNo': '1', 'numOfRows': '30', '_type': 'json',
-                  'cityCode': '11', 'nodeId': node_id,
-              }
-              url = base + '?' + urllib.parse.urlencode(params)
-              req = urllib.request.Request(url, headers={'User-Agent':'gallae-poc/1.0'})
-              with urllib.request.urlopen(req, timeout=25) as response:
-                  return json.loads(response.read().decode('utf-8'))
+              # Official data.go.kr service URL is HTTP.
+              base = 'http://apis.data.go.kr/1613000/ArvlInfoInqireService/getSttnAcctoArvlPrearngeInfoList'
+              decoded_key = urllib.parse.unquote(key.strip())
+              # Encode exactly once for query transport.
+              query = (
+                  'serviceKey=' + urllib.parse.quote(decoded_key, safe='') +
+                  '&pageNo=1&numOfRows=30&_type=json&cityCode=11&nodeId=' + urllib.parse.quote(node_id, safe='')
+              )
+              req = urllib.request.Request(base + '?' + query, headers={'User-Agent':'Mozilla/5.0 gallae-poc/1.0'})
+              try:
+                  with urllib.request.urlopen(req, timeout=25) as response:
+                      text = response.read().decode('utf-8', errors='replace')
+              except urllib.error.HTTPError as e:
+                  raise RuntimeError(safe_http_error(e))
+              try:
+                  return json.loads(text)
+              except Exception:
+                  raise RuntimeError('Non-JSON response: ' + text[:400])
 
           if bus_key:
               errors = []
-              # 18514 is paired with Seoul internal stop records in the 117900xxx range.
-              # Try likely TAGO encodings without exposing the secret.
               node_candidates = ['SEOUL117900129', '117900129', 'SEOUL18514', '18514']
               for node_id in node_candidates:
                   try:
@@ -105,7 +120,9 @@ jobs:
                       if str(header.get('resultCode')) != '00':
                           raise RuntimeError(f"TAGO {header.get('resultCode')}: {header.get('resultMsg')}")
                       body = response.get('body', {}) or {}
-                      items = (body.get('items') or {}).get('item') or []
+                      items_obj = body.get('items') or {}
+                      items = items_obj.get('item') if isinstance(items_obj, dict) else []
+                      items = items or []
                       if isinstance(items, dict):
                           items = [items]
                       if not items:
