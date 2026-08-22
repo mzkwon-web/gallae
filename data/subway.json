@@ -2,43 +2,43 @@
   "status": "ok",
   "station": "가산디지털단지",
   "line": "7호선",
-  "updated_at": "2026-08-23T05:49:16+09:00",
+  "updated_at": "2026-08-23T06:41:56+09:00",
   "arrivals": [
-    {
-      "destination": "장암",
-      "direction": "상행",
-      "train_line": "장암행 - 남구로방면",
-      "arrival_message": "가산디지털단지 진입",
-      "current_location": "철산",
-      "train_no": "7014",
-      "received_at": "2026-08-23 05:48:41"
-    },
     {
       "destination": "도봉산",
       "direction": "상행",
       "train_line": "도봉산행 - 남구로방면",
+      "arrival_message": "5분 후 (광명사거리)",
+      "current_location": "광명사거리",
+      "train_no": "7028",
+      "received_at": "2026-08-23 06:41:34"
+    },
+    {
+      "destination": "장암",
+      "direction": "상행",
+      "train_line": "장암행 - 남구로방면",
       "arrival_message": "13분 후 (까치울)",
       "current_location": "까치울",
-      "train_no": "7016",
-      "received_at": "2026-08-23 05:48:41"
+      "train_no": "7030",
+      "received_at": "2026-08-23 06:41:34"
     },
     {
       "destination": "석남",
       "direction": "하행",
       "train_line": "석남행 - 철산방면",
-      "arrival_message": "5분 후 (신풍)",
-      "current_location": "신풍",
-      "train_no": "7007",
-      "received_at": "2026-08-23 05:48:31"
+      "arrival_message": "전역 출발",
+      "current_location": "남구로",
+      "train_no": "7015",
+      "received_at": "2026-08-23 06:41:24"
     },
     {
       "destination": "석남",
       "direction": "하행",
       "train_line": "석남행 - 철산방면",
-      "arrival_message": "17분 후 (숭실대입구(살피재))",
-      "current_location": "숭실대입구(살피재)",
-      "train_no": "7009",
-      "received_at": "2026-08-23 05:48:31"
+      "arrival_message": "12분 후 (장승배기)",
+      "current_location": "장승배기",
+      "train_no": "7017",
+      "received_at": "2026-08-23 06:41:24"
     }
   ]
 }
