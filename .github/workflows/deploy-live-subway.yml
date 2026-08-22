@@ -108,8 +108,19 @@ jobs:
               if not key:
                   raise RuntimeError('SEOUL_API_KEY is missing')
               base = 'http://ws.bus.go.kr/api/rest/stationinfo/getStationByUid'
-              url = base + '?serviceKey=' + secret_param(key) + '&arsId=' + urllib.parse.quote(ars_id)
-              xml_bytes = fetch_bytes(url, timeout=25, attempts=2)
+              xml_bytes = None
+              last_error = None
+              # Seoul documentation consistently names serviceKey, while some published
+              # integration examples use ServiceKey. Try both without exposing/changing the secret.
+              for key_name in ('serviceKey', 'ServiceKey'):
+                  try:
+                      url = base + '?' + key_name + '=' + secret_param(key) + '&arsId=' + urllib.parse.quote(ars_id)
+                      xml_bytes = fetch_bytes(url, timeout=25, attempts=2)
+                      break
+                  except Exception as e:
+                      last_error = e
+              if xml_bytes is None:
+                  raise last_error
               root = ET.fromstring(xml_bytes)
               header_cd = (root.findtext('.//headerCd') or '').strip()
               header_msg = (root.findtext('.//headerMsg') or '').strip()
