@@ -108,7 +108,7 @@ jobs:
               if not key:
                   raise RuntimeError('SEOUL_API_KEY is missing')
               base = 'http://ws.bus.go.kr/api/rest/stationinfo/getStationByUid'
-              url = base + '?serviceKey=' + secret_param(key) + '&arsId=' + urllib.parse.quote(ars_id)
+              url = base + '?ServiceKey=' + secret_param(key) + '&arsId=' + urllib.parse.quote(ars_id)
               xml_bytes = fetch_bytes(url, timeout=25, attempts=2)
               root = ET.fromstring(xml_bytes)
               header_cd = (root.findtext('.//headerCd') or '').strip()
