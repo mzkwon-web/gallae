@@ -38,7 +38,8 @@ jobs:
           from pathlib import Path
 
           kst = timezone(timedelta(hours=9))
-          now = datetime.now(kst).isoformat(timespec='seconds')
+          started_at = datetime.now(kst)
+          now = started_at.isoformat(timespec='seconds')
           Path('data').mkdir(exist_ok=True)
 
           def fetch_bytes(url, timeout=20, attempts=3):
@@ -118,7 +119,6 @@ jobs:
 
           if bus_key:
               errors = []
-              # ARS 18514 is distinct from TAGO nodeId. 117900129 is the strongest current Seoul internal-ID candidate.
               node_candidates = ['SEOUL117900129', '117900129', 'SEOUL18514', '18514']
               for node_id in node_candidates:
                   try:
@@ -168,6 +168,28 @@ jobs:
               bus_payload['error'] = 'DATA_GO_KR_BUS_API_KEY is missing'
 
           Path('data/bus.json').write_text(json.dumps(bus_payload, ensure_ascii=False, indent=2), encoding='utf-8')
+
+          # Machine-readable diagnostic snapshot for automated monitoring.
+          finished_at = datetime.now(kst)
+          overall = 'ok' if subway_payload.get('status') == 'ok' and bus_payload.get('status') == 'ok' else 'degraded'
+          last_run = {
+              'overall_status': overall,
+              'started_at': started_at.isoformat(timespec='seconds'),
+              'finished_at': finished_at.isoformat(timespec='seconds'),
+              'duration_seconds': round((finished_at - started_at).total_seconds(), 2),
+              'subway': {
+                  'status': subway_payload.get('status'),
+                  'arrival_count': len(subway_payload.get('arrivals') or []),
+                  'error': subway_payload.get('error'),
+              },
+              'bus': {
+                  'status': bus_payload.get('status'),
+                  'arrival_count': len(bus_payload.get('arrivals') or []),
+                  'node_id': bus_payload.get('node_id'),
+                  'error': bus_payload.get('error'),
+              },
+          }
+          Path('data/last-run.json').write_text(json.dumps(last_run, ensure_ascii=False, indent=2), encoding='utf-8')
           PY
 
       - name: Configure Pages
