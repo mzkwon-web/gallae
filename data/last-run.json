@@ -1,8 +1,8 @@
 {
   "overall_status": "degraded",
-  "started_at": "2026-08-23T01:01:46+09:00",
-  "finished_at": "2026-08-23T01:02:41+09:00",
-  "duration_seconds": 55.76,
+  "started_at": "2026-08-23T01:56:22+09:00",
+  "finished_at": "2026-08-23T01:57:20+09:00",
+  "duration_seconds": 58.34,
   "subway": {
     "status": "ok",
     "arrival_count": 0,
