@@ -1,0 +1,56 @@
+name: Sync Gallae runtime status
+
+on:
+  workflow_run:
+    workflows: ["Deploy Gallae with live transit data"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-runtime-status:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download and validate published status
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/gallae-status
+          base="https://mzkwon-web.github.io/gallae/data"
+          curl -fsSL --retry 3 --retry-delay 2 "$base/last-run.json" -o /tmp/gallae-status/last-run.json
+          curl -fsSL --retry 3 --retry-delay 2 "$base/subway.json" -o /tmp/gallae-status/subway.json
+          curl -fsSL --retry 3 --retry-delay 2 "$base/bus.json" -o /tmp/gallae-status/bus.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for name in ('last-run.json', 'subway.json', 'bus.json'):
+              path = Path('/tmp/gallae-status') / name
+              with path.open(encoding='utf-8') as f:
+                  json.load(f)
+          PY
+
+      - name: Update runtime-status branch
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin runtime-status
+          git switch runtime-status
+          mkdir -p data
+          cp /tmp/gallae-status/last-run.json data/last-run.json
+          cp /tmp/gallae-status/subway.json data/subway.json
+          cp /tmp/gallae-status/bus.json data/bus.json
+          git add data/last-run.json data/subway.json data/bus.json
+          if git diff --cached --quiet; then
+            echo "Runtime status is already up to date."
+          else
+            git commit -m "Update runtime transit status"
+            git push origin runtime-status
+          fi
