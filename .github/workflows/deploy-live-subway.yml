@@ -8,7 +8,7 @@ on:
     - cron: '*/10 * * * *'
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -33,7 +33,7 @@ jobs:
           GYEONGGI_BUS_API_KEY: ${{ secrets.GYEONGGI_BUS_API_KEY }}
         run: |
           python - <<'PY'
-          import json, os, time, urllib.parse, urllib.request, urllib.error
+          import json, os, time, urllib.parse, urllib.request
           import xml.etree.ElementTree as ET
           from datetime import datetime, timezone, timedelta
           from pathlib import Path
@@ -59,7 +59,6 @@ jobs:
           def secret_param(value):
               return urllib.parse.quote(urllib.parse.unquote((value or '').strip()), safe='')
 
-          # Subway adapter: Seoul realtime subway API
           subway_key = os.environ.get('SEOUL_SUBWAY_API_KEY')
           subway_payload = {'status':'error','station':'가산디지털단지','line':'7호선','updated_at':now,'arrivals':[]}
           if subway_key:
@@ -87,7 +86,6 @@ jobs:
               subway_payload['error'] = 'SEOUL_SUBWAY_API_KEY is missing'
           Path('data/subway.json').write_text(json.dumps(subway_payload, ensure_ascii=False, indent=2), encoding='utf-8')
 
-          # Common bus record returned by each regional adapter.
           def bus_record(route, seconds=None, stops=None, second_message='', destination=''):
               try:
                   sec = int(seconds)
@@ -105,7 +103,6 @@ jobs:
                   'destination': destination,
               }
 
-          # Seoul bus adapter: ARS-ID can be queried directly.
           def fetch_seoul_bus(ars_id):
               key = os.environ.get('SEOUL_API_KEY')
               if not key:
@@ -132,7 +129,6 @@ jobs:
                   ))
               return out
 
-          # Gyeonggi bus adapter: requires the regional stationId, not an ARS number.
           def fetch_gyeonggi_bus(station_id):
               key = os.environ.get('GYEONGGI_BUS_API_KEY')
               if not key:
@@ -162,7 +158,6 @@ jobs:
                   ))
               return out
 
-          # Current PoC stop is in Seoul, so use the Seoul adapter.
           bus_payload = {
               'status':'error', 'source':'seoul', 'stop_name':'롯데캐슬 정류장',
               'ars_id':'18514', 'updated_at':now, 'arrivals':[]
@@ -173,7 +168,6 @@ jobs:
               bus_payload['error'] = str(e)
           Path('data/bus.json').write_text(json.dumps(bus_payload, ensure_ascii=False, indent=2), encoding='utf-8')
 
-          # Independent source probes: verify regional credentials without affecting the current Seoul stop.
           source_checks = {
               'seoul': {'status': bus_payload.get('status'), 'error': bus_payload.get('error')},
               'gyeonggi': {'status':'error', 'test_station_id':'200000078'},
@@ -214,6 +208,29 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
+
+      - name: Publish runtime diagnostics
+        run: |
+          mkdir -p /tmp/gallae-runtime/data
+          cp data/subway.json data/bus.json data/last-run.json /tmp/gallae-runtime/data/
+          git config user.name "gallae-runtime-bot"
+          git config user.email "actions@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin runtime-status >/dev/null 2>&1; then
+            git fetch origin runtime-status
+            git switch -C runtime-status origin/runtime-status
+            git rm -rf . >/dev/null 2>&1 || true
+          else
+            git switch --orphan runtime-status
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+          mkdir -p data
+          cp /tmp/gallae-runtime/data/*.json data/
+          touch .nojekyll
+          git add data .nojekyll
+          if ! git diff --cached --quiet; then
+            git commit -m "Update runtime transit status [skip ci]"
+            git push origin runtime-status
+          fi
 
       - name: Deploy to GitHub Pages
         id: deployment
