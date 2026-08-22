@@ -1,0 +1,11 @@
+{
+  "overall_status": "waiting",
+  "started_at": null,
+  "finished_at": null,
+  "subway": {"status": "waiting", "arrival_count": 0, "error": null},
+  "bus": {"status": "waiting", "source": null, "arrival_count": 0, "error": null},
+  "source_checks": {
+    "seoul": {"status": "waiting"},
+    "gyeonggi": {"status": "waiting", "test_station_id": "200000078"}
+  }
+}
