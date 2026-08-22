@@ -1,0 +1,9 @@
+{
+  "status": "error",
+  "source": "seoul",
+  "stop_name": "롯데캐슬 정류장",
+  "ars_id": "18514",
+  "updated_at": "2026-08-22T18:38:58+09:00",
+  "arrivals": [],
+  "error": "HTTP Error 401: Unauthorized"
+}
