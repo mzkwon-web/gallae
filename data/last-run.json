@@ -1,23 +1,23 @@
 {
   "overall_status": "degraded",
-  "started_at": "2026-08-22T19:53:10+09:00",
-  "finished_at": "2026-08-22T19:53:16+09:00",
-  "duration_seconds": 5.54,
+  "started_at": "2026-08-22T20:37:01+09:00",
+  "finished_at": "2026-08-22T20:39:03+09:00",
+  "duration_seconds": 122.45,
   "subway": {
-    "status": "ok",
-    "arrival_count": 4,
-    "error": null
+    "status": "error",
+    "arrival_count": 0,
+    "error": "<urlopen error timed out>"
   },
   "bus": {
     "status": "error",
     "source": "seoul",
     "arrival_count": 0,
-    "error": "HTTP Error 401: Unauthorized"
+    "error": "<urlopen error timed out>"
   },
   "source_checks": {
     "seoul": {
       "status": "error",
-      "error": "HTTP Error 401: Unauthorized"
+      "error": "<urlopen error timed out>"
     },
     "gyeonggi": {
       "status": "ok",
