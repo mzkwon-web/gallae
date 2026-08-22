@@ -6,7 +6,6 @@ on:
   workflow_dispatch:
   schedule:
     # Daily, roughly 05:20–23:50 KST, every 10 minutes.
-    # GitHub Actions cron uses UTC: 20:20–23:50 UTC (previous day) + 00:00–14:50 UTC.
     - cron: '20-50/10 20-23 * * *'
     - cron: '*/10 0-14 * * *'
 
@@ -35,96 +34,110 @@ jobs:
           DATA_GO_KR_BUS_API_KEY: ${{ secrets.DATA_GO_KR_BUS_API_KEY }}
         run: |
           python - <<'PY'
-          import json, os, urllib.parse, urllib.request, xml.etree.ElementTree as ET
+          import json, os, urllib.parse, urllib.request
           from datetime import datetime, timezone, timedelta
           from pathlib import Path
 
           kst = timezone(timedelta(hours=9))
+          now = datetime.now(kst).isoformat(timespec='seconds')
           Path('data').mkdir(exist_ok=True)
 
           # Subway: Gasan Digital Complex Station, Line 7
           subway_key = os.environ.get('SEOUL_SUBWAY_API_KEY')
-          subway_payload = {'status':'error','station':'가산디지털단지','line':'7호선','updated_at':datetime.now(kst).isoformat(timespec='seconds'),'arrivals':[]}
+          subway_payload = {'status':'error','station':'가산디지털단지','line':'7호선','updated_at':now,'arrivals':[]}
           if subway_key:
               try:
-                  station = '가산디지털단지'
-                  encoded = urllib.parse.quote(station)
-                  url = f'http://swopenapi.seoul.go.kr/api/subway/{subway_key}/json/realtimeStationArrival/0/30/{encoded}'
-                  req = urllib.request.Request(url, headers={'User-Agent': 'gallae-poc/1.0'})
+                  station = urllib.parse.quote('가산디지털단지')
+                  url = f'http://swopenapi.seoul.go.kr/api/subway/{subway_key}/json/realtimeStationArrival/0/30/{station}'
+                  req = urllib.request.Request(url, headers={'User-Agent':'gallae-poc/1.0'})
                   with urllib.request.urlopen(req, timeout=20) as response:
                       raw = json.loads(response.read().decode('utf-8'))
                   rows = raw.get('realtimeArrivalList', [])
-                  line7 = []
+                  arrivals = []
                   for row in rows:
-                      if str(row.get('subwayId')) != '1007':
-                          continue
-                      line7.append({
-                          'destination': row.get('bstatnNm'),
-                          'direction': row.get('updnLine'),
-                          'train_line': row.get('trainLineNm'),
-                          'arrival_message': row.get('arvlMsg2'),
-                          'current_location': row.get('arvlMsg3'),
-                          'train_no': row.get('btrainNo'),
-                          'received_at': row.get('recptnDt'),
-                      })
-                  subway_payload.update(status='ok', arrivals=line7[:8])
+                      if str(row.get('subwayId')) == '1007':
+                          arrivals.append({
+                              'destination': row.get('bstatnNm'),
+                              'direction': row.get('updnLine'),
+                              'train_line': row.get('trainLineNm'),
+                              'arrival_message': row.get('arvlMsg2'),
+                              'current_location': row.get('arvlMsg3'),
+                              'train_no': row.get('btrainNo'),
+                              'received_at': row.get('recptnDt'),
+                          })
+                  subway_payload.update(status='ok', arrivals=arrivals[:8])
               except Exception as e:
                   subway_payload['error'] = str(e)
           else:
               subway_payload['error'] = 'SEOUL_SUBWAY_API_KEY is missing'
           Path('data/subway.json').write_text(json.dumps(subway_payload, ensure_ascii=False, indent=2), encoding='utf-8')
 
-          # Bus: user's "롯데캐슬 정류장" = ARS 18514
-          # TODO: switch this request to the TAGO endpoint matching DATA_GO_KR_BUS_API_KEY.
+          # Bus: TAGO bus-arrival API. User-facing stop number is 18514.
+          # Seoul city code is 11. Seoul's internal stop id is tested safely from known candidates.
           bus_key = os.environ.get('DATA_GO_KR_BUS_API_KEY')
-          bus_payload = {'status':'error','stop_name':'롯데캐슬 정류장','ars_id':'18514','updated_at':datetime.now(kst).isoformat(timespec='seconds'),'arrivals':[]}
+          bus_payload = {
+              'status':'error', 'stop_name':'롯데캐슬 정류장', 'ars_id':'18514',
+              'updated_at':now, 'arrivals':[]
+          }
 
-          def parse_bus(xml_bytes):
-              root = ET.fromstring(xml_bytes)
-              header_cd = (root.findtext('.//headerCd') or '').strip()
-              header_msg = (root.findtext('.//headerMsg') or '').strip()
-              if header_cd not in ('0','00',''):
-                  raise RuntimeError(f'{header_cd}: {header_msg}')
-              arrivals = []
-              for item in root.findall('.//itemList'):
-                  def t(name):
-                      v = item.findtext(name)
-                      return v.strip() if isinstance(v, str) else v
-                  arrivals.append({
-                      'route': t('rtNm') or t('busRouteAbrv') or t('busRouteNm'),
-                      'first_message': t('arrmsg1'),
-                      'first_seconds': t('traTime1'),
-                      'first_stops': t('sectOrd1'),
-                      'second_message': t('arrmsg2'),
-                      'second_seconds': t('traTime2'),
-                      'second_stops': t('sectOrd2'),
-                      'destination': t('stationNm1'),
-                  })
-              return arrivals
+          def call_tago(key, node_id):
+              base = 'https://apis.data.go.kr/1613000/ArvlInfoInqireService/getSttnAcctoArvlPrearngeInfoList'
+              params = {
+                  'serviceKey': urllib.parse.unquote(key),
+                  'pageNo': '1', 'numOfRows': '30', '_type': 'json',
+                  'cityCode': '11', 'nodeId': node_id,
+              }
+              url = base + '?' + urllib.parse.urlencode(params)
+              req = urllib.request.Request(url, headers={'User-Agent':'gallae-poc/1.0'})
+              with urllib.request.urlopen(req, timeout=25) as response:
+                  return json.loads(response.read().decode('utf-8'))
 
           if bus_key:
               errors = []
-              candidates = []
-              decoded = urllib.parse.unquote(bus_key)
-              for candidate in (decoded, bus_key):
-                  if candidate and candidate not in candidates:
-                      candidates.append(candidate)
-              for candidate in candidates:
+              # 18514 is paired with Seoul internal stop records in the 117900xxx range.
+              # Try likely TAGO encodings without exposing the secret.
+              node_candidates = ['SEOUL117900129', '117900129', 'SEOUL18514', '18514']
+              for node_id in node_candidates:
                   try:
-                      query = 'serviceKey=' + urllib.parse.quote(candidate, safe='') + '&arsId=18514'
-                      url = 'http://ws.bus.go.kr/api/rest/stationinfo/getStationByUid?' + query
-                      req = urllib.request.Request(url, headers={'User-Agent': 'gallae-poc/1.0'})
-                      with urllib.request.urlopen(req, timeout=20) as response:
-                          xml_bytes = response.read()
-                      arrivals = parse_bus(xml_bytes)
-                      bus_payload.update(status='ok', arrivals=arrivals)
+                      raw = call_tago(bus_key, node_id)
+                      response = raw.get('response', {})
+                      header = response.get('header', {})
+                      if str(header.get('resultCode')) != '00':
+                          raise RuntimeError(f"TAGO {header.get('resultCode')}: {header.get('resultMsg')}")
+                      body = response.get('body', {}) or {}
+                      items = (body.get('items') or {}).get('item') or []
+                      if isinstance(items, dict):
+                          items = [items]
+                      if not items:
+                          errors.append(f'{node_id}: no data')
+                          continue
+                      arrivals = []
+                      for item in items:
+                          seconds = item.get('arrtime')
+                          try:
+                              mins = max(0, round(int(seconds) / 60))
+                              first_msg = f'{mins}분 후' if mins > 0 else '곧 도착'
+                          except Exception:
+                              first_msg = str(seconds or '도착정보 확인 중')
+                          stops = item.get('arrprevstationcnt')
+                          arrivals.append({
+                              'route': item.get('routeno'),
+                              'first_message': first_msg,
+                              'first_seconds': seconds,
+                              'first_stops': stops,
+                              'second_message': f'{stops}정류장 전' if stops not in (None, '') else '',
+                              'vehicle_type': item.get('vehicletp'),
+                              'destination': item.get('nodenm'),
+                          })
+                      bus_payload.update(status='ok', node_id=node_id, arrivals=arrivals)
                       break
                   except Exception as e:
-                      errors.append(str(e))
+                      errors.append(f'{node_id}: {e}')
               if bus_payload['status'] != 'ok':
-                  bus_payload['error'] = ' / '.join(errors[-2:]) or 'bus api request failed'
+                  bus_payload['error'] = ' | '.join(errors)
           else:
               bus_payload['error'] = 'DATA_GO_KR_BUS_API_KEY is missing'
+
           Path('data/bus.json').write_text(json.dumps(bus_payload, ensure_ascii=False, indent=2), encoding='utf-8')
           PY
 
