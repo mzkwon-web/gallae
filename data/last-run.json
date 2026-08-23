@@ -1,8 +1,8 @@
 {
   "overall_status": "degraded",
-  "started_at": "2026-08-23T10:26:32+09:00",
-  "finished_at": "2026-08-23T10:26:39+09:00",
-  "duration_seconds": 6.91,
+  "started_at": "2026-08-23T12:31:49+09:00",
+  "finished_at": "2026-08-23T12:31:51+09:00",
+  "duration_seconds": 2.47,
   "subway": {
     "status": "ok",
     "arrival_count": 4,
@@ -14,13 +14,13 @@
     "city_code": null,
     "node_id": null,
     "arrival_count": 0,
-    "error": "HTTP Error 403: Forbidden"
+    "error": "TAGO cityCode not found for 서울; received 138 cities"
   },
   "source_checks": {
     "seoul": {
       "status": "error",
       "source": "tago",
-      "error": "HTTP Error 403: Forbidden"
+      "error": "TAGO cityCode not found for 서울; received 138 cities"
     },
     "gyeonggi": {
       "status": "ok",
