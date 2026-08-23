@@ -1,12 +1,12 @@
 {
   "status": "ok",
   "overall_status": "degraded",
-  "started_at": "2026-08-23T23:56:50+09:00",
-  "finished_at": "2026-08-23T23:57:46+09:00",
-  "duration_seconds": 55.52,
+  "started_at": "2026-08-24T00:19:14+09:00",
+  "finished_at": "2026-08-24T00:20:09+09:00",
+  "duration_seconds": 54.6,
   "subway": {
     "status": "ok",
-    "arrival_count": 2,
+    "arrival_count": 1,
     "error": null
   },
   "bus": {
