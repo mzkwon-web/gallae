@@ -30,6 +30,7 @@ jobs:
         env:
           SEOUL_SUBWAY_API_KEY: ${{ secrets.SEOUL_SUBWAY_API_KEY }}
           DATA_GO_KR_BUS_API_KEY: ${{ secrets.DATA_GO_KR_BUS_API_KEY }}
+          GYEONGGI_BUS_API_KEY: ${{ secrets.DATA_GO_KR_BUS_API_KEY }}
         run: |
           python - <<'PY'
           import json, os, time, urllib.parse, urllib.request, urllib.error
@@ -53,9 +54,6 @@ jobs:
                       if i < attempts - 1:
                           time.sleep(2 * (i + 1))
               raise last
-
-          def encode_key(value):
-              return urllib.parse.quote(urllib.parse.unquote((value or '').strip()), safe='')
 
           # Subway: Gasan Digital Complex, Line 7
           subway_key = os.environ.get('SEOUL_SUBWAY_API_KEY')
@@ -174,6 +172,29 @@ jobs:
                   })
               return arrivals
 
+          def probe_gyeonggi(station_id='200000078'):
+              key = os.environ.get('GYEONGGI_BUS_API_KEY')
+              if not key:
+                  raise RuntimeError('GYEONGGI_BUS_API_KEY is missing')
+              base = 'https://apis.data.go.kr/6410000/busarrivalservice/v2/getBusArrivalListv2'
+              query = urllib.parse.urlencode({
+                  'format': 'json',
+                  'serviceKey': urllib.parse.unquote(key.strip()),
+                  'stationId': station_id,
+              }, safe='%')
+              raw = json.loads(fetch_bytes(base + '?' + query, timeout=25, attempts=2).decode('utf-8', errors='replace'))
+              response = raw.get('response', {}) if isinstance(raw, dict) else {}
+              header = response.get('msgHeader', {}) if isinstance(response, dict) else {}
+              code = str(header.get('resultCode', ''))
+              msg = header.get('resultMessage') or header.get('resultMsg') or ''
+              if code not in ('0', '00'):
+                  raise RuntimeError(f'GYEONGGI {code}: {msg}')
+              body = response.get('msgBody', {}) if isinstance(response, dict) else {}
+              items = body.get('busArrivalList', []) if isinstance(body, dict) else []
+              if isinstance(items, dict):
+                  items = [items]
+              return len(items or [])
+
           bus_payload = {
               'status':'error', 'source':'tago', 'stop_name':'롯데캐슬 정류장',
               'ars_id':'18514', 'updated_at':now, 'arrivals':[]
@@ -194,8 +215,28 @@ jobs:
                   bus_payload['error'] = str(e)
           Path('data/bus.json').write_text(json.dumps(bus_payload, ensure_ascii=False, indent=2), encoding='utf-8')
 
+          source_checks = {
+              'seoul': {
+                  'status': bus_payload.get('status'),
+                  'source': 'tago',
+                  'error': bus_payload.get('error'),
+              },
+              'gyeonggi': {
+                  'status': 'error',
+                  'source': 'gyeonggi_bus_api',
+                  'test_station_id': '200000078',
+                  'error': None,
+              },
+          }
+          try:
+              gy_count = probe_gyeonggi()
+              source_checks['gyeonggi'].update(status='ok', arrival_count=gy_count)
+          except Exception as e:
+              source_checks['gyeonggi']['error'] = str(e)
+
           finished_at = datetime.now(kst)
-          overall = 'ok' if subway_payload.get('status') == 'ok' and bus_payload.get('status') == 'ok' else 'degraded'
+          checks_ok = all(v.get('status') == 'ok' for v in source_checks.values())
+          overall = 'ok' if subway_payload.get('status') == 'ok' and bus_payload.get('status') == 'ok' and checks_ok else 'degraded'
           last_run = {
               'overall_status': overall,
               'started_at': started_at.isoformat(timespec='seconds'),
@@ -214,6 +255,7 @@ jobs:
                   'arrival_count': len(bus_payload.get('arrivals') or []),
                   'error': bus_payload.get('error'),
               },
+              'source_checks': source_checks,
           }
           Path('data/last-run.json').write_text(json.dumps(last_run, ensure_ascii=False, indent=2), encoding='utf-8')
           PY
