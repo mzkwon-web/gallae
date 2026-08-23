@@ -4,21 +4,21 @@
   "stop_name": "롯데캐슬 정류장",
   "official_stop_name": "금천현대아파트.청소년문화의집",
   "ars_id": "18514",
-  "updated_at": "2026-08-24T07:53:56+09:00",
+  "updated_at": "2026-08-24T08:41:23+09:00",
   "arrivals": [
     {
       "route": "금천01",
-      "first_message": "5분후[4번째 전]",
-      "first_seconds": "353",
-      "first_stops": "25",
-      "second_message": "9분후[6번째 전]",
+      "first_message": "3분후[2번째 전]",
+      "first_seconds": "218",
+      "first_stops": "27",
+      "second_message": "4분후[3번째 전]",
       "destination": "금천현대아파트.청소년문화의집",
       "source": "seoul-data-go-kr"
     },
     {
       "route": "금천06",
-      "first_message": "5분후[4번째 전]",
-      "first_seconds": "342",
+      "first_message": "6분후[4번째 전]",
+      "first_seconds": "388",
       "first_stops": "5",
       "second_message": "출발대기",
       "destination": "금천현대아파트.청소년문화의집",
@@ -26,9 +26,9 @@
     },
     {
       "route": "금천07",
-      "first_message": "10분후[6번째 전]",
-      "first_seconds": "591",
-      "first_stops": "3",
+      "first_message": "출발대기",
+      "first_seconds": "0",
+      "first_stops": "0",
       "second_message": "출발대기",
       "destination": "금천현대아파트.청소년문화의집",
       "source": "seoul-data-go-kr"
@@ -36,7 +36,7 @@
     {
       "route": "금천08",
       "first_message": "회차대기",
-      "first_seconds": "5",
+      "first_seconds": "8",
       "first_stops": "25",
       "second_message": "회차대기",
       "destination": "금천현대아파트.청소년문화의집",
@@ -44,10 +44,10 @@
     },
     {
       "route": "320안산",
-      "first_message": "5분후[5번째 전]",
-      "first_seconds": "368",
-      "first_stops": "125",
-      "second_message": "33분후[23번째 전]",
+      "first_message": "25분후[15번째 전]",
+      "first_seconds": "1521",
+      "first_stops": "115",
+      "second_message": "61분후[36번째 전]",
       "destination": "에스켐텍",
       "source": "seoul-data-go-kr"
     }
