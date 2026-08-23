@@ -97,17 +97,20 @@ jobs:
                   **{k: str(v) for k, v in params.items()}
               }
               url = TAGO_BASE + '/' + path + '?' + urllib.parse.urlencode(query, safe='%')
-              text = fetch_bytes(url, timeout=25, attempts=2).decode('utf-8', errors='replace')
+              try:
+                  text = fetch_bytes(url, timeout=45, attempts=3).decode('utf-8', errors='replace')
+              except Exception as e:
+                  raise RuntimeError(f'TAGO request failed [{path}]: {e}') from e
               try:
                   raw = json.loads(text)
               except Exception:
-                  raise RuntimeError('TAGO non-JSON response: ' + text[:300])
+                  raise RuntimeError('TAGO non-JSON response [' + path + ']: ' + text[:300])
               response = raw.get('response', {}) if isinstance(raw, dict) else {}
               header = response.get('header', {}) if isinstance(response, dict) else {}
               code = str(header.get('resultCode', ''))
               msg = header.get('resultMsg') or ''
               if code not in ('00', '0', ''):
-                  raise RuntimeError(f'TAGO {code}: {msg}')
+                  raise RuntimeError(f'TAGO {code} [{path}]: {msg}')
               body = response.get('body', {}) or {}
               items_obj = body.get('items') or {}
               items = items_obj.get('item') if isinstance(items_obj, dict) else []
