@@ -2,25 +2,43 @@
   "status": "ok",
   "station": "가산디지털단지",
   "line": "7호선",
-  "updated_at": "2026-08-24T04:48:29+09:00",
+  "updated_at": "2026-08-24T05:31:10+09:00",
   "arrivals": [
     {
       "destination": "장암",
       "direction": "상행",
       "train_line": "장암행 - 남구로방면",
-      "arrival_message": "51분 후 (온수)",
-      "current_location": "온수",
+      "arrival_message": "9분 후 (천왕)",
+      "current_location": "천왕",
       "train_no": "7012",
-      "received_at": "2026-08-24 04:48:12"
+      "received_at": "2026-08-24 05:30:54"
+    },
+    {
+      "destination": "장암",
+      "direction": "상행",
+      "train_line": "장암행 - 남구로방면",
+      "arrival_message": "18분 후 (온수)",
+      "current_location": "온수",
+      "train_no": "7014",
+      "received_at": "2026-08-24 05:30:54"
     },
     {
       "destination": "석남",
       "direction": "하행",
       "train_line": "석남행 - 철산방면",
-      "arrival_message": "48분 후 (신풍)",
+      "arrival_message": "5분 후 (신풍)",
       "current_location": "신풍",
       "train_no": "7003",
-      "received_at": "2026-08-24 04:48:02"
+      "received_at": "2026-08-24 05:30:44"
+    },
+    {
+      "destination": "석남",
+      "direction": "하행",
+      "train_line": "석남행 - 철산방면",
+      "arrival_message": "22분 후 (내방)",
+      "current_location": "내방",
+      "train_no": "7005",
+      "received_at": "2026-08-24 05:30:44"
     }
   ]
 }
