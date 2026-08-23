@@ -1,32 +1,36 @@
 {
+  "status": "error",
   "overall_status": "degraded",
-  "started_at": "2026-08-23T15:01:05+09:00",
-  "finished_at": "2026-08-23T15:03:59+09:00",
-  "duration_seconds": 173.8,
+  "started_at": "2026-08-23T17:35:06+09:00",
+  "finished_at": "2026-08-23T17:35:09+09:00",
+  "duration_seconds": 3.04,
   "subway": {
-    "status": "error",
-    "arrival_count": 0,
-    "error": "<urlopen error timed out>"
+    "status": "ok",
+    "arrival_count": 4,
+    "error": null
   },
   "bus": {
     "status": "error",
     "source": "tago",
+    "stage": "city_code_lookup",
     "city_code": null,
     "node_id": null,
     "arrival_count": 0,
-    "error": "<urlopen error timed out>"
+    "error": "TAGO cityCode not found for 서울; received 138 cities; sample={\"citycode\": 12, \"cityname\": \"세종특별시\"}"
   },
   "source_checks": {
     "seoul": {
       "status": "error",
       "source": "tago",
-      "error": "<urlopen error timed out>"
+      "stage": "city_code_lookup",
+      "error": "TAGO cityCode not found for 서울; received 138 cities; sample={\"citycode\": 12, \"cityname\": \"세종특별시\"}"
     },
     "gyeonggi": {
-      "status": "error",
+      "status": "ok",
       "source": "gyeonggi_bus_api",
       "test_station_id": "200000078",
-      "error": "<urlopen error timed out>"
+      "error": null,
+      "arrival_count": 15
     }
   }
 }
