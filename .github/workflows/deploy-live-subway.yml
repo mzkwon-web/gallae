@@ -119,11 +119,37 @@ jobs:
 
           def find_city_code(keyword='서울'):
               items, _ = tago('BusSttnInfoInqireService/getCtyCodeList')
+              if not items:
+                  raise RuntimeError('TAGO getCtyCodeList returned no cities')
+
+              sample = items[0]
+              print('TAGO getCtyCodeList sample item:', json.dumps(sample, ensure_ascii=False))
+
+              found = None
               for item in items:
-                  city_name = str(item.get('citynm') or item.get('cityName') or '')
-                  if keyword in city_name:
-                      return str(item.get('citycode') or item.get('cityCode'))
-              raise RuntimeError(f"TAGO cityCode not found for {keyword}; received {len(items)} cities")
+                  if not isinstance(item, dict):
+                      continue
+                  if any(isinstance(value, str) and keyword in value for value in item.values()):
+                      found = item
+                      break
+
+              if not found:
+                  raise RuntimeError(
+                      f"TAGO cityCode not found for {keyword}; received {len(items)} cities; "
+                      f"sample={json.dumps(sample, ensure_ascii=False)[:500]}"
+                  )
+
+              code_keys = [key for key in found.keys() if 'code' in key.lower()]
+              for key in code_keys:
+                  value = found.get(key)
+                  if value not in (None, ''):
+                      print('TAGO city match:', json.dumps(found, ensure_ascii=False), 'codeKey=', key)
+                      return str(value)
+
+              raise RuntimeError(
+                  'TAGO city matched but no code-like field found: ' +
+                  json.dumps(found, ensure_ascii=False)[:500]
+              )
 
           def find_node_by_ars(city_code, ars_id):
               items, body = tago('BusSttnInfoInqireService/getSttnNoList', {
@@ -197,17 +223,24 @@ jobs:
 
           bus_payload = {
               'status':'error', 'source':'tago', 'stop_name':'롯데캐슬 정류장',
-              'ars_id':'18514', 'updated_at':now, 'arrivals':[]
+              'ars_id':'18514', 'updated_at':now, 'arrivals':[], 'stage':'not_started'
           }
           if not bus_key:
-              bus_payload['error'] = 'DATA_GO_KR_BUS_API_KEY is missing'
+              bus_payload.update(stage='auth', error='DATA_GO_KR_BUS_API_KEY is missing')
           else:
               try:
+                  bus_payload['stage'] = 'city_code_lookup'
                   city_code = find_city_code('서울')
+                  bus_payload['city_code'] = city_code
+
+                  bus_payload['stage'] = 'ars_to_node_lookup'
                   node_id, station = find_node_by_ars(city_code, '18514')
+                  bus_payload['node_id'] = node_id
+
+                  bus_payload['stage'] = 'arrival_lookup'
                   arrivals = get_tago_arrivals(city_code, node_id)
                   bus_payload.update(
-                      status='ok', city_code=city_code, node_id=node_id,
+                      status='ok', stage='complete',
                       official_stop_name=station.get('nodenm') or station.get('nodeNm'),
                       arrivals=arrivals
                   )
@@ -219,6 +252,7 @@ jobs:
               'seoul': {
                   'status': bus_payload.get('status'),
                   'source': 'tago',
+                  'stage': bus_payload.get('stage'),
                   'error': bus_payload.get('error'),
               },
               'gyeonggi': {
@@ -238,6 +272,7 @@ jobs:
           checks_ok = all(v.get('status') == 'ok' for v in source_checks.values())
           overall = 'ok' if subway_payload.get('status') == 'ok' and bus_payload.get('status') == 'ok' and checks_ok else 'degraded'
           last_run = {
+              'status': 'ok' if bus_payload.get('status') == 'ok' else 'error',
               'overall_status': overall,
               'started_at': started_at.isoformat(timespec='seconds'),
               'finished_at': finished_at.isoformat(timespec='seconds'),
@@ -250,6 +285,7 @@ jobs:
               'bus': {
                   'status': bus_payload.get('status'),
                   'source': bus_payload.get('source'),
+                  'stage': bus_payload.get('stage'),
                   'city_code': bus_payload.get('city_code'),
                   'node_id': bus_payload.get('node_id'),
                   'arrival_count': len(bus_payload.get('arrivals') or []),
@@ -258,16 +294,22 @@ jobs:
               'source_checks': source_checks,
           }
           Path('data/last-run.json').write_text(json.dumps(last_run, ensure_ascii=False, indent=2), encoding='utf-8')
+
+          if bus_payload.get('status') != 'ok':
+              raise SystemExit('TAGO bus integration failed at ' + str(bus_payload.get('stage')) + ': ' + str(bus_payload.get('error')))
           PY
 
       - name: Configure Pages
+        if: always()
         uses: actions/configure-pages@v5
 
       - name: Upload site artifact
+        if: always()
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
 
       - name: Deploy to GitHub Pages
+        if: always()
         id: deployment
         uses: actions/deploy-pages@v4
