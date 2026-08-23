@@ -3,103 +3,43 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="갈래 — 매번 다른 곳으로 이동하는 뚜벅이를 위한 AI 이동 비서 PoC" />
+  <meta name="description" content="갈래 — 매번 다른 곳으로 이동하는 뚜벅이를 위한 AI 이동 비서" />
   <title>갈래 | AI 이동 비서</title>
   <style>
     :root{color-scheme:light;--bg:#f7f7f5;--ink:#171717;--muted:#666;--line:#deded9;--card:#fff}
     *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Pretendard,"Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink)}
-    main{max-width:980px;margin:0 auto;padding:72px 24px 88px}.eyebrow{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-    h1{font-size:clamp(56px,10vw,112px);line-height:.94;letter-spacing:-.06em;margin:18px 0 24px}.lead{max-width:820px;font-size:clamp(22px,3vw,34px);line-height:1.35;letter-spacing:-.03em;margin:0 0 44px}
-    .planner{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:26px;margin:0 0 28px}.planner-grid{display:grid;grid-template-columns:1.6fr 1fr auto;gap:12px;align-items:end}.field label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin:0 0 8px}.field input{width:100%;border:1px solid var(--line);border-radius:14px;background:#fff;padding:14px 15px;font:inherit;font-size:16px;color:var(--ink);outline:none}.field input:focus{border-color:#999}.planner button{border:0;border-radius:14px;background:var(--ink);color:#fff;padding:14px 18px;font:inherit;font-weight:700;cursor:pointer;white-space:nowrap}.planner-note{font-size:13px;color:var(--muted);margin-top:12px;line-height:1.5}.planner-result{display:none;margin-top:18px;padding-top:18px;border-top:1px solid var(--line);font-size:16px;line-height:1.6}.planner-result strong{font-size:18px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0 64px}.card,.live{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px}.card{min-height:190px}.num{font-size:13px;color:var(--muted);margin-bottom:44px}
-    .card h2,.live h2{font-size:24px;letter-spacing:-.03em;margin:0 0 10px}.card p,.live p{font-size:16px;line-height:1.6;color:#4d4d4d;margin:0}.live{margin:0 0 20px}.live-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:20px}.badge{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--muted);white-space:nowrap}
-    .arrival{display:grid;grid-template-columns:1.1fr 1fr 1.5fr;gap:12px;padding:14px 0;border-top:1px solid var(--line);font-size:14px}.arrival strong{font-size:15px}.muted{color:var(--muted)}.diagnostic{margin-top:10px;font-size:12px;line-height:1.5;color:#777;word-break:break-word}
-    .statement{border-top:1px solid var(--line);padding-top:34px;display:grid;grid-template-columns:1fr 2fr;gap:24px;margin-top:64px}.statement h3{font-size:16px;margin:0;color:var(--muted)}.statement p{font-size:28px;line-height:1.45;letter-spacing:-.03em;margin:0}
+    main{max-width:1040px;margin:0 auto;padding:72px 24px 96px}.eyebrow{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    h1{font-size:clamp(64px,12vw,132px);line-height:.9;letter-spacing:-.065em;margin:18px 0 28px}.lead{max-width:870px;font-size:clamp(24px,3.2vw,38px);line-height:1.32;letter-spacing:-.035em;margin:0 0 34px}.sub{max-width:720px;font-size:18px;line-height:1.7;color:#4d4d4d;margin:0 0 34px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:82px}.primary,.secondary{display:inline-block;padding:14px 18px;border-radius:14px;text-decoration:none;font-size:15px;font-weight:700}.primary{background:var(--ink);color:#fff}.secondary{border:1px solid var(--line);color:var(--ink);background:var(--card)}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:0 0 76px}.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px;min-height:210px}.num{font-size:13px;color:var(--muted);margin-bottom:50px}.card h2{font-size:24px;letter-spacing:-.03em;margin:0 0 10px}.card p{font-size:16px;line-height:1.6;color:#4d4d4d;margin:0}
+    .statement{border-top:1px solid var(--line);padding-top:36px;display:grid;grid-template-columns:1fr 2fr;gap:24px}.statement h3{font-size:15px;margin:0;color:var(--muted)}.statement p{font-size:clamp(24px,3vw,34px);line-height:1.45;letter-spacing:-.03em;margin:0}
     footer{margin-top:80px;padding-top:24px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
-    @media(max-width:760px){main{padding-top:48px}.planner-grid{grid-template-columns:1fr}.planner button{width:100%}.grid{grid-template-columns:1fr}.statement{grid-template-columns:1fr}.card{min-height:auto}.num{margin-bottom:24px}.arrival{grid-template-columns:1fr}.live-head{display:block}.badge{display:inline-block;margin-top:12px}}
+    @media(max-width:760px){main{padding-top:48px}.grid{grid-template-columns:1fr}.card{min-height:auto}.num{margin-bottom:24px}.statement{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
   <main>
-    <div class="eyebrow">Personalized Mobility Decision Assistant · PoC</div>
+    <div class="eyebrow">Personalized Mobility Decision Assistant</div>
     <h1>갈래</h1>
-    <p class="lead">매번 다른 곳으로 이동하는 뚜벅이를 위한 AI 이동 비서. 도착 시간과 실제 이동 습관을 바탕으로 언제 나갈지, 어떻게 이동할지 판단합니다.</p>
-
-    <section class="planner" aria-label="이동 테스트 입력">
-      <div class="eyebrow">Trip Test · Input</div>
-      <div class="planner-grid">
-        <div class="field">
-          <label for="destination">목적지</label>
-          <input id="destination" type="text" placeholder="예: 시흥여성인력개발센터" autocomplete="off" />
-        </div>
-        <div class="field">
-          <label for="arrival-time">도착시간</label>
-          <input id="arrival-time" type="time" />
-        </div>
-        <button id="planner-submit" type="button">이동 준비</button>
-      </div>
-      <div class="planner-note">현재는 입력 UI 테스트 단계입니다. 실제 경로 계산과 실시간 교통 반영은 버스 데이터 검증 후 연결합니다.</div>
-      <div class="planner-result" id="planner-result"></div>
-    </section>
+    <p class="lead">나에게 맞는 길, 내가 선호하는 길.</p>
+    <p class="sub">매번 다른 곳으로 이동하는 뚜벅이를 위한 AI 이동 비서입니다. 도착 시간과 실제 이동 습관을 바탕으로 언제 나갈지, 어떻게 이동할지 판단합니다.</p>
+    <div class="actions">
+      <a class="primary" href="./app.html">갈래 사용해보기</a>
+      <a class="secondary" href="https://github.com/mzkwon-web/gallae">PoC 저장소 보기</a>
+    </div>
 
     <section class="grid" aria-label="갈래 핵심 기능">
-      <article class="card"><div class="num">01</div><h2>도착시간 역산</h2><p>목적지와 도착시간을 기준으로 출발시간을 계산합니다.</p></article>
+      <article class="card"><div class="num">01</div><h2>도착시간 역산</h2><p>목적지와 도착시간을 기준으로 현실적인 출발시간을 계산합니다.</p></article>
       <article class="card"><div class="num">02</div><h2>효율적 이동을 위한 조합 비교</h2><p>도보, 버스, 지하철, GTX, 필요할 때 택시까지 가능한 이동 조합을 비교합니다.</p></article>
-      <article class="card"><div class="num">03</div><h2>내 상황에 맞는 판단</h2><p>날씨, 실시간 교통, 이동 경험과 선호를 반영해 경로를 판단합니다.</p></article>
+      <article class="card"><div class="num">03</div><h2>내 상황에 맞는 판단</h2><p>날씨, 실시간 교통, 이동 경험과 선호를 반영해 오늘의 경로를 판단합니다.</p></article>
     </section>
 
-    <section class="live" aria-live="polite">
-      <div class="live-head">
-        <div><div class="eyebrow">Live PoC · Subway</div><h2>가산디지털단지역 · 7호선</h2><p id="subway-summary">실시간 데이터를 불러오는 중입니다.</p><div class="diagnostic" id="subway-diagnostic"></div></div>
-        <span class="badge" id="subway-time">업데이트 확인 중</span>
-      </div>
-      <div id="subway-arrivals"></div>
+    <section class="statement">
+      <h3>Why Gallae?</h3>
+      <p>“어디로 갈래? 어떻게 갈래? 몇 시에 갈래?”<br />여러 길의 갈래 중 오늘 나에게 맞는 선택을 찾습니다.</p>
     </section>
 
-    <section class="live" aria-live="polite">
-      <div class="live-head">
-        <div><div class="eyebrow">Live PoC · Bus</div><h2>롯데캐슬 정류장 · 18514</h2><p id="bus-summary">실시간 데이터를 불러오는 중입니다.</p><div class="diagnostic" id="bus-diagnostic"></div></div>
-        <span class="badge" id="bus-time">업데이트 확인 중</span>
-      </div>
-      <div id="bus-arrivals"></div>
-    </section>
-
-    <section class="statement"><h3>Why Gallae?</h3><p>“어디로 갈래? 어떻게 갈래? 몇 시에 갈래?”<br />여러 길의 갈래 중 오늘 나에게 맞는 선택을 찾습니다.</p></section>
-    <footer>Gallae · AI Mobility Assistant · Proof of Concept · 교통 데이터 출처: 서울특별시 / 공공데이터포털</footer>
+    <footer>Gallae · AI Mobility Assistant · Proof of Concept</footer>
   </main>
-  <script>
-    const esc = (v='') => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-    const formatTime = value => value ? `갱신 ${new Date(value).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}` : '대기 중';
-
-    document.getElementById('planner-submit').addEventListener('click', () => {
-      const destination = document.getElementById('destination').value.trim();
-      const arrivalTime = document.getElementById('arrival-time').value;
-      const result = document.getElementById('planner-result');
-      if (!destination || !arrivalTime) {
-        result.style.display = 'block';
-        result.innerHTML = '목적지와 도착시간을 모두 입력해 주세요.';
-        return;
-      }
-      result.style.display = 'block';
-      result.innerHTML = `<strong>${esc(destination)}</strong> · ${esc(arrivalTime)} 도착 목표<br><span class="muted">입력 확인 완료 · 실제 출발시간/경로 판단 연결 전</span>`;
-    });
-
-    fetch('./data/subway.json?ts=' + Date.now(), {cache:'no-store'})
-      .then(r => r.json()).then(data => {
-        const list = data.arrivals || [];
-        document.getElementById('subway-time').textContent = formatTime(data.updated_at);
-        document.getElementById('subway-summary').textContent = data.status === 'ok' ? (list.length ? `현재 확인되는 7호선 열차 ${list.length}건` : '현재 표시할 열차가 없습니다.') : '실시간 지하철 데이터를 확인하지 못했습니다.';
-        document.getElementById('subway-diagnostic').textContent = data.status === 'ok' ? '' : (data.error ? `진단: ${data.error}` : '진단 정보 없음');
-        document.getElementById('subway-arrivals').innerHTML = list.map(x => `<div class="arrival"><strong>${esc(x.destination || x.train_line || '행선지 확인 중')}</strong><span>${esc(x.arrival_message || '-')}</span><span class="muted">${esc(x.current_location || '')}${x.received_at ? ` · 데이터 ${esc(x.received_at.slice(11,19))}` : ''}</span></div>`).join('');
-      }).catch(err => { document.getElementById('subway-summary').textContent = '실시간 데이터를 불러오지 못했습니다.'; document.getElementById('subway-diagnostic').textContent = `진단: ${err.message || 'JSON 로드 실패'}`; });
-
-    fetch('./data/bus.json?ts=' + Date.now(), {cache:'no-store'})
-      .then(r => r.json()).then(data => {
-        const list = data.arrivals || [];
-        document.getElementById('bus-time').textContent = formatTime(data.updated_at);
-        document.getElementById('bus-summary').textContent = data.status === 'ok' ? (list.length ? `현재 확인되는 버스 노선 ${list.length}개` : '현재 도착예정 버스가 없습니다.') : '실시간 버스 데이터를 확인하지 못했습니다.';
-        document.getElementById('bus-diagnostic').textContent = data.status === 'ok' ? '' : (data.error ? `진단: ${data.error}` : '진단 정보 없음');
-        document.getElementById('bus-arrivals').innerHTML = list.slice(0,8).map(x => `<div class="arrival"><strong>${esc(x.route || '노선')}</strong><span>${esc(x.first_message || '첫차 정보 없음')}</span><span class="muted">${esc(x.second_message || '')}</span></div>`).join('');
-      }).catch(err => { document.getElementById('bus-summary').textContent = '실시간 데이터를 불러오지 못했습니다.'; document.getElementById('bus-diagnostic').textContent = `진단: ${err.message || 'JSON 로드 실패'}`; });
-  </script>
 </body>
 </html>
