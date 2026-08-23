@@ -1,9 +1,9 @@
 {
   "status": "ok",
-  "overall_status": "degraded",
-  "started_at": "2026-08-24T06:40:51+09:00",
-  "finished_at": "2026-08-24T06:41:46+09:00",
-  "duration_seconds": 55.14,
+  "overall_status": "ok",
+  "started_at": "2026-08-24T07:01:40+09:00",
+  "finished_at": "2026-08-24T07:01:44+09:00",
+  "duration_seconds": 4.38,
   "subway": {
     "status": "ok",
     "arrival_count": 4,
@@ -24,10 +24,11 @@
       "error": null
     },
     "gyeonggi": {
-      "status": "error",
+      "status": "ok",
       "source": "gyeonggi_bus_api",
       "test_station_id": "200000078",
-      "error": "<urlopen error timed out>"
+      "error": null,
+      "arrival_count": 15
     }
   }
 }
