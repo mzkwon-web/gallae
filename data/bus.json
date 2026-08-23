@@ -3,8 +3,8 @@
   "source": "tago",
   "stop_name": "롯데캐슬 정류장",
   "ars_id": "18514",
-  "updated_at": "2026-08-23T17:35:06+09:00",
+  "updated_at": "2026-08-23T18:01:29+09:00",
   "arrivals": [],
   "stage": "city_code_lookup",
-  "error": "TAGO cityCode not found for 서울; received 138 cities; sample={\"citycode\": 12, \"cityname\": \"세종특별시\"}"
+  "error": "TAGO request failed [BusSttnInfoInqireService/getCtyCodeList]: <urlopen error timed out>"
 }
