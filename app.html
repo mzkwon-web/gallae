@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="갈래 이동 판단 PoC" />
+  <title>갈래 | 이동 테스트</title>
+  <style>
+    :root{color-scheme:light;--bg:#f7f7f5;--ink:#171717;--muted:#666;--line:#deded9;--card:#fff}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Pretendard,"Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink)}
+    main{max-width:980px;margin:0 auto;padding:36px 24px 88px}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:48px}.brand{font-size:22px;font-weight:800;letter-spacing:-.04em}.back{font-size:14px;color:var(--muted);text-decoration:none}.eyebrow{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    h1{font-size:clamp(44px,7vw,78px);line-height:1;letter-spacing:-.055em;margin:12px 0 18px}.lead{max-width:760px;font-size:clamp(20px,2.5vw,28px);line-height:1.4;letter-spacing:-.03em;margin:0 0 36px}
+    .planner{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:26px;margin:0 0 28px}.planner-grid{display:grid;grid-template-columns:1.6fr 1fr auto;gap:12px;align-items:end}.field label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin:0 0 8px}.field input{width:100%;border:1px solid var(--line);border-radius:14px;background:#fff;padding:14px 15px;font:inherit;font-size:16px;color:var(--ink);outline:none}.field input:focus{border-color:#999}.planner button{border:0;border-radius:14px;background:var(--ink);color:#fff;padding:14px 18px;font:inherit;font-weight:700;cursor:pointer;white-space:nowrap}.planner-note{font-size:13px;color:var(--muted);margin-top:12px;line-height:1.5}.planner-result{display:none;margin-top:18px;padding-top:18px;border-top:1px solid var(--line);font-size:16px;line-height:1.6}.planner-result strong{font-size:18px}
+    .live{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px;margin:0 0 20px}.live-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:20px}.live h2{font-size:24px;letter-spacing:-.03em;margin:0 0 10px}.live p{font-size:16px;line-height:1.6;color:#4d4d4d;margin:0}.badge{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--muted);white-space:nowrap}.arrival{display:grid;grid-template-columns:1.1fr 1fr 1.5fr;gap:12px;padding:14px 0;border-top:1px solid var(--line);font-size:14px}.arrival strong{font-size:15px}.muted{color:var(--muted)}.diagnostic{margin-top:10px;font-size:12px;line-height:1.5;color:#777;word-break:break-word}
+    footer{margin-top:56px;padding-top:24px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+    @media(max-width:760px){.top{margin-bottom:34px}.planner-grid{grid-template-columns:1fr}.planner button{width:100%}.arrival{grid-template-columns:1fr}.live-head{display:block}.badge{display:inline-block;margin-top:12px}}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top"><div class="brand">갈래</div><a class="back" href="./">서비스 소개 보기</a></div>
+    <div class="eyebrow">Gallae · Live PoC</div>
+    <h1>오늘 어떻게 갈래?</h1>
+    <p class="lead">목적지와 도착시간을 입력하고, 실시간 교통정보와 이동 기준을 연결해 출발 시각과 이동 방법을 판단하는 테스트 화면입니다.</p>
+
+    <section class="planner" aria-label="이동 테스트 입력">
+      <div class="eyebrow">Trip Test · Input</div>
+      <div class="planner-grid">
+        <div class="field">
+          <label for="destination">목적지</label>
+          <input id="destination" type="text" placeholder="예: 시흥여성인력개발센터" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="arrival-time">도착시간</label>
+          <input id="arrival-time" type="time" />
+        </div>
+        <button id="planner-submit" type="button">이동 준비</button>
+      </div>
+      <div class="planner-note">현재는 입력 확인 단계입니다. 다음 업데이트에서 등록 목적지부터 실제 출발시간·이동안 판단을 연결합니다.</div>
+      <div class="planner-result" id="planner-result"></div>
+    </section>
+
+    <section class="live" aria-live="polite">
+      <div class="live-head">
+        <div><div class="eyebrow">Live · Subway</div><h2>가산디지털단지역 · 7호선</h2><p id="subway-summary">실시간 데이터를 불러오는 중입니다.</p><div class="diagnostic" id="subway-diagnostic"></div></div>
+        <span class="badge" id="subway-time">업데이트 확인 중</span>
+      </div>
+      <div id="subway-arrivals"></div>
+    </section>
+
+    <section class="live" aria-live="polite">
+      <div class="live-head">
+        <div><div class="eyebrow">Live · Bus</div><h2>롯데캐슬 정류장 · 18514</h2><p id="bus-summary">실시간 데이터를 불러오는 중입니다.</p><div class="diagnostic" id="bus-diagnostic"></div></div>
+        <span class="badge" id="bus-time">업데이트 확인 중</span>
+      </div>
+      <div id="bus-arrivals"></div>
+    </section>
+
+    <footer>Gallae · AI Mobility Assistant · Live Proof of Concept</footer>
+  </main>
+  <script>
+    const esc = (v='') => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+    const formatTime = value => value ? `갱신 ${new Date(value).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}` : '대기 중';
+
+    document.getElementById('planner-submit').addEventListener('click', () => {
+      const destination = document.getElementById('destination').value.trim();
+      const arrivalTime = document.getElementById('arrival-time').value;
+      const result = document.getElementById('planner-result');
+      result.style.display = 'block';
+      if (!destination || !arrivalTime) {
+        result.innerHTML = '목적지와 도착시간을 모두 입력해 주세요.';
+        return;
+      }
+      result.innerHTML = `<strong>${esc(destination)}</strong> · ${esc(arrivalTime)} 도착 목표<br><span class="muted">입력 확인 완료 · 이동 판단 연결 준비 중</span>`;
+    });
+
+    fetch('./data/subway.json?ts=' + Date.now(), {cache:'no-store'})
+      .then(r => r.json()).then(data => {
+        const list = data.arrivals || [];
+        document.getElementById('subway-time').textContent = formatTime(data.updated_at);
+        document.getElementById('subway-summary').textContent = data.status === 'ok' ? (list.length ? `현재 확인되는 7호선 열차 ${list.length}건` : '현재 표시할 열차가 없습니다.') : '실시간 지하철 데이터를 확인하지 못했습니다.';
+        document.getElementById('subway-diagnostic').textContent = data.status === 'ok' ? '' : (data.error ? `진단: ${data.error}` : '진단 정보 없음');
+        document.getElementById('subway-arrivals').innerHTML = list.map(x => `<div class="arrival"><strong>${esc(x.destination || x.train_line || '행선지 확인 중')}</strong><span>${esc(x.arrival_message || '-')}</span><span class="muted">${esc(x.current_location || '')}${x.received_at ? ` · 데이터 ${esc(x.received_at.slice(11,19))}` : ''}</span></div>`).join('');
+      }).catch(err => { document.getElementById('subway-summary').textContent = '실시간 데이터를 불러오지 못했습니다.'; document.getElementById('subway-diagnostic').textContent = `진단: ${err.message || 'JSON 로드 실패'}`; });
+
+    fetch('./data/bus.json?ts=' + Date.now(), {cache:'no-store'})
+      .then(r => r.json()).then(data => {
+        const list = data.arrivals || [];
+        document.getElementById('bus-time').textContent = formatTime(data.updated_at);
+        document.getElementById('bus-summary').textContent = data.status === 'ok' ? (list.length ? `현재 확인되는 버스 노선 ${list.length}개` : '현재 도착예정 버스가 없습니다.') : '실시간 버스 데이터를 확인하지 못했습니다.';
+        document.getElementById('bus-diagnostic').textContent = data.status === 'ok' ? '' : (data.error ? `진단: ${data.error}` : '진단 정보 없음');
+        document.getElementById('bus-arrivals').innerHTML = list.slice(0,8).map(x => `<div class="arrival"><strong>${esc(x.route || '노선')}</strong><span>${esc(x.first_message || '첫차 정보 없음')}</span><span class="muted">${esc(x.second_message || '')}</span></div>`).join('');
+      }).catch(err => { document.getElementById('bus-summary').textContent = '실시간 데이터를 불러오지 못했습니다.'; document.getElementById('bus-diagnostic').textContent = `진단: ${err.message || 'JSON 로드 실패'}`; });
+  </script>
+</body>
+</html>
