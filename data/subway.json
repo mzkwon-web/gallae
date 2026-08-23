@@ -2,16 +2,6 @@
   "status": "ok",
   "station": "가산디지털단지",
   "line": "7호선",
-  "updated_at": "2026-08-24T00:19:14+09:00",
-  "arrivals": [
-    {
-      "destination": "온수",
-      "direction": "하행",
-      "train_line": "온수행 - 철산방면 (막차)",
-      "arrival_message": "가산디지털단지 도착",
-      "current_location": "가산디지털단지",
-      "train_no": "7323",
-      "received_at": "2026-08-24 00:01:44"
-    }
-  ]
+  "updated_at": "2026-08-24T00:48:50+09:00",
+  "arrivals": []
 }
