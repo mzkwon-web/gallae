@@ -2,43 +2,43 @@
   "status": "ok",
   "station": "가산디지털단지",
   "line": "7호선",
-  "updated_at": "2026-08-24T05:31:10+09:00",
+  "updated_at": "2026-08-24T05:46:08+09:00",
   "arrivals": [
     {
       "destination": "장암",
       "direction": "상행",
       "train_line": "장암행 - 남구로방면",
-      "arrival_message": "9분 후 (천왕)",
-      "current_location": "천왕",
-      "train_no": "7012",
-      "received_at": "2026-08-24 05:30:54"
+      "arrival_message": "4분 후 (광명사거리)",
+      "current_location": "광명사거리",
+      "train_no": "7014",
+      "received_at": "2026-08-24 05:45:33"
     },
     {
       "destination": "장암",
       "direction": "상행",
       "train_line": "장암행 - 남구로방면",
-      "arrival_message": "18분 후 (온수)",
-      "current_location": "온수",
-      "train_no": "7014",
-      "received_at": "2026-08-24 05:30:54"
+      "arrival_message": "17분 후 (춘의역)",
+      "current_location": "춘의역",
+      "train_no": "7016",
+      "received_at": "2026-08-24 05:45:33"
     },
     {
       "destination": "석남",
       "direction": "하행",
       "train_line": "석남행 - 철산방면",
-      "arrival_message": "5분 후 (신풍)",
-      "current_location": "신풍",
-      "train_no": "7003",
-      "received_at": "2026-08-24 05:30:44"
-    },
-    {
-      "destination": "석남",
-      "direction": "하행",
-      "train_line": "석남행 - 철산방면",
-      "arrival_message": "22분 후 (내방)",
-      "current_location": "내방",
+      "arrival_message": "8분 후 (보라매)",
+      "current_location": "보라매",
       "train_no": "7005",
-      "received_at": "2026-08-24 05:30:44"
+      "received_at": "2026-08-24 05:45:23"
+    },
+    {
+      "destination": "석남",
+      "direction": "하행",
+      "train_line": "석남행 - 철산방면",
+      "arrival_message": "21분 후 (총신대입구(이수))",
+      "current_location": "총신대입구(이수)",
+      "train_no": "7009",
+      "received_at": "2026-08-24 05:45:23"
     }
   ]
 }
