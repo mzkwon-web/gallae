@@ -2,43 +2,43 @@
   "status": "ok",
   "station": "가산디지털단지",
   "line": "7호선",
-  "updated_at": "2026-08-23T20:42:37+09:00",
+  "updated_at": "2026-08-23T22:22:12+09:00",
   "arrivals": [
     {
-      "destination": "장암",
+      "destination": "도봉산",
       "direction": "상행",
-      "train_line": "장암행 - 남구로방면",
-      "arrival_message": "전역 출발",
-      "current_location": "철산",
-      "train_no": "7284",
-      "received_at": "2026-08-23 20:41:50"
+      "train_line": "도봉산행 - 남구로방면",
+      "arrival_message": "가산디지털단지 진입",
+      "current_location": "가산디지털단지",
+      "train_no": "7312",
+      "received_at": "2026-08-23 22:21:18"
     },
     {
       "destination": "도봉산",
       "direction": "상행",
       "train_line": "도봉산행 - 남구로방면",
-      "arrival_message": "9분 후 (천왕)",
-      "current_location": "천왕",
-      "train_no": "7286",
-      "received_at": "2026-08-23 20:41:50"
-    },
-    {
-      "destination": "온수",
-      "direction": "하행",
-      "train_line": "온수행 - 철산방면",
-      "arrival_message": "전역 도착",
-      "current_location": "남구로",
-      "train_no": "7267",
-      "received_at": "2026-08-23 20:42:00"
+      "arrival_message": "10분 후 (온수)",
+      "current_location": "온수",
+      "train_no": "7314",
+      "received_at": "2026-08-23 22:21:18"
     },
     {
       "destination": "석남",
       "direction": "하행",
       "train_line": "석남행 - 철산방면",
+      "arrival_message": "전역 출발",
+      "current_location": "남구로",
+      "train_no": "7297",
+      "received_at": "2026-08-23 22:21:28"
+    },
+    {
+      "destination": "온수",
+      "direction": "하행",
+      "train_line": "온수행 - 철산방면",
       "arrival_message": "9분 후 (보라매)",
       "current_location": "보라매",
-      "train_no": "7269",
-      "received_at": "2026-08-23 20:42:00"
+      "train_no": "7299",
+      "received_at": "2026-08-23 22:21:28"
     }
   ]
 }
