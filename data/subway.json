@@ -2,43 +2,43 @@
   "status": "ok",
   "station": "가산디지털단지",
   "line": "7호선",
-  "updated_at": "2026-08-24T23:31:18+09:00",
+  "updated_at": "2026-08-25T00:13:15+09:00",
   "arrivals": [
     {
-      "destination": "도봉산",
+      "destination": "건대입구",
       "direction": "상행",
-      "train_line": "도봉산행 - 남구로방면",
-      "arrival_message": "14분 후 (부천종합운동장)",
-      "current_location": "부천종합운동장",
-      "train_no": "7394",
-      "received_at": "2026-08-24 23:30:33"
+      "train_line": "건대입구행 - 남구로방면",
+      "arrival_message": "전역 진입",
+      "current_location": "철산",
+      "train_no": "7400",
+      "received_at": "2026-08-25 00:12:51"
     },
     {
-      "destination": "청담",
+      "destination": "내방",
       "direction": "상행",
-      "train_line": "청담행 - 남구로방면",
-      "arrival_message": "21분 후 (온수)",
-      "current_location": "온수",
-      "train_no": "7396",
-      "received_at": "2026-08-24 23:30:33"
-    },
-    {
-      "destination": "석남",
-      "direction": "하행",
-      "train_line": "석남행 - 철산방면",
-      "arrival_message": "3분 후 (대림)",
-      "current_location": "대림",
-      "train_no": "7401",
-      "received_at": "2026-08-24 23:30:43"
+      "train_line": "내방행 - 남구로방면 (막차)",
+      "arrival_message": "23분 후 (상동)",
+      "current_location": "상동",
+      "train_no": "7402",
+      "received_at": "2026-08-25 00:12:51"
     },
     {
       "destination": "온수",
       "direction": "하행",
       "train_line": "온수행 - 철산방면",
-      "arrival_message": "15분 후 (숭실대입구(살피재))",
+      "arrival_message": "8분 후 (보라매)",
+      "current_location": "보라매",
+      "train_no": "7411",
+      "received_at": "2026-08-25 00:13:01"
+    },
+    {
+      "destination": "석남",
+      "direction": "하행",
+      "train_line": "석남행 - 철산방면",
+      "arrival_message": "17분 후 (숭실대입구(살피재))",
       "current_location": "숭실대입구(살피재)",
-      "train_no": "7403",
-      "received_at": "2026-08-24 23:30:43"
+      "train_no": "7413",
+      "received_at": "2026-08-25 00:13:01"
     }
   ]
 }
