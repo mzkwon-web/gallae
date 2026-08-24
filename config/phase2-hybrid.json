@@ -1,0 +1,30 @@
+{
+  "version": "0.1",
+  "mode": "hybrid_rolling_eta",
+  "data_priority": ["realtime", "schedule", "plan", "estimate"],
+  "targets": {
+    "target_arrival": "13:50",
+    "hard_deadline": "14:00"
+  },
+  "deadline_margin_rules": {
+    "sufficient_min_minutes": 10,
+    "caution_min_minutes": 3,
+    "urgent_below_minutes": 3
+  },
+  "ranking": {
+    "sufficient": ["comfort", "stability", "preference", "eta"],
+    "caution": ["stability", "comfort", "eta", "preference_weakened"],
+    "urgent": ["eta", "lateness"]
+  },
+  "evidence_sources": ["api", "measured", "preference", "constraint", "rule"],
+  "segment_policy": {
+    "doksan_to_guro": "realtime_when_validated",
+    "guro_to_sosa": "schedule_or_plan_fallback",
+    "sosa_to_sincheon": "schedule_or_plan_fallback",
+    "final_access": "measured_or_estimate"
+  },
+  "v0_1_non_goals": [
+    "same_train_schedule_matching",
+    "proving_operator_train_delay"
+  ]
+}
