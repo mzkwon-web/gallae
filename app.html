@@ -12,7 +12,7 @@
 const esc=(v='')=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 const formatTime=v=>v?`갱신 ${new Date(v).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}`:'대기 중';
 const subtractMinutes=(hhmm,mins)=>{const[h,m]=hhmm.split(':').map(Number);let t=(h*60+m-mins+1440)%1440;return`${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`};
-const SOURCE_LABELS={api:'API 실시간',measured:'사용자 실측',preference:'경험/선호',constraint:'사용자 제약',rule:'PoC 규칙'};
+const SOURCE_LABELS={api:'API 실시간',measured:'사용자 실측',preference:'사용자 경험/선호',constraint:'사용자 제약',rule:'PoC 규칙'};
 const sourceTag=source=>`<span class="source" data-source="${esc(source)}">${SOURCE_LABELS[source]||esc(source)}</span>`;
 const evidenceRow=e=>`<div class="evidence-row">${sourceTag(e.source)} ${esc(e.text)}</div>`;
 const ROUTES={
