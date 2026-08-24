@@ -1,127 +1,30 @@
 <!doctype html>
-<html lang="ko">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="갈래 이동 판단 PoC">
-<title>갈래 | 이동 테스트</title>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="갈래 이동 판단 PoC"><title>갈래 | 이동 테스트</title>
 <style>
-:root{color-scheme:light;--bg:#f7f7f5;--ink:#171717;--muted:#666;--line:#deded9;--card:#fff}
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Pretendard,"Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink)}main{max-width:980px;margin:0 auto;padding:36px 24px 88px}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:48px}.brand{font-size:22px;font-weight:800;letter-spacing:-.04em}.back{font-size:14px;color:var(--muted);text-decoration:none}.eyebrow{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}h1{font-size:clamp(44px,7vw,78px);line-height:1;letter-spacing:-.055em;margin:12px 0 18px}.lead{max-width:760px;font-size:clamp(20px,2.5vw,28px);line-height:1.4;letter-spacing:-.03em;margin:0 0 36px}.planner,.live,.compare{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px;margin:0 0 20px}.planner-grid{display:grid;grid-template-columns:1.5fr .8fr .9fr auto;gap:12px;align-items:end}.field label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin:0 0 8px}.field input,.field select{width:100%;border:1px solid var(--line);border-radius:14px;background:#fff;padding:14px 15px;font:inherit;font-size:16px;color:var(--ink)}.planner button{border:0;border-radius:14px;background:var(--ink);color:#fff;padding:14px 18px;font:inherit;font-weight:700;cursor:pointer}.planner-note,.compare-note{font-size:13px;color:var(--muted);margin-top:12px;line-height:1.55}.planner-result{display:none;margin-top:20px;padding-top:20px;border-top:1px solid var(--line)}.decision{font-size:28px;font-weight:800;letter-spacing:-.04em;margin-bottom:10px}.decision-detail{font-size:15px;line-height:1.7;color:#444}.pill,.source{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:6px 9px;margin:6px 6px 0 0;font-size:12px}.pill{color:var(--muted)}.source{font-weight:700;background:#fafafa}.compare{display:none}.compare h2,.live h2{font-size:24px;letter-spacing:-.03em;margin:0 0 10px}.candidate{padding:18px 0;border-top:1px solid var(--line)}.candidate:first-of-type{margin-top:16px}.candidate-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.candidate-title{font-size:18px;font-weight:800}.candidate-badge{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:6px 9px;white-space:nowrap}.evidence{margin-top:12px;display:grid;gap:8px}.evidence-row{font-size:14px;line-height:1.55;color:#555}.live-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:20px}.live p{font-size:16px;line-height:1.6;color:#4d4d4d;margin:0}.badge{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--muted);white-space:nowrap}.arrival{display:grid;grid-template-columns:1.1fr 1fr 1.5fr;gap:12px;padding:14px 0;border-top:1px solid var(--line);font-size:14px}.arrival strong{font-size:15px}.muted{color:var(--muted)}.diagnostic{margin-top:10px;font-size:12px;line-height:1.5;color:#777;word-break:break-word}footer{margin-top:56px;padding-top:24px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
-@media(max-width:760px){.planner-grid{grid-template-columns:1fr}.planner button{width:100%}.arrival{grid-template-columns:1fr}.live-head{display:block}.badge{display:inline-block;margin-top:12px}.decision{font-size:24px}.candidate-head{align-items:flex-start}}
-</style>
-</head>
-<body><main>
-<div class="top"><div class="brand">갈래</div><a class="back" href="./">서비스 소개 보기</a></div>
-<div class="eyebrow">Gallae · Live PoC</div>
-<h1>오늘 어떻게 갈래?</h1>
-<p class="lead">목적지와 도착시간을 입력하면, 검증된 이동 경험과 실시간 교통정보를 바탕으로 출발 판단을 테스트합니다.</p>
-
-<section class="planner">
-<div class="eyebrow">Trip Test · Input</div>
-<div class="planner-grid">
-<div class="field"><label for="destination">목적지</label><input id="destination" type="text" placeholder="예: 시흥여성인력개발센터"></div>
-<div class="field"><label for="arrival-time">도착시간</label><input id="arrival-time" type="time"></div>
-<div class="field"><label for="condition">이동 조건</label><select id="condition"><option value="dry">비 안 옴</option><option value="rain">비 옴</option></select></div>
-<button id="planner-submit" type="button">판단하기</button>
-</div>
-<div class="planner-note">현재 1차 판단은 등록·검증된 목적지부터 제공합니다. 새로운 목적지는 임의 계산하지 않습니다.</div>
-<div class="planner-result" id="planner-result"></div>
-</section>
-
-<section class="compare" id="route-compare">
-<div class="eyebrow">Route Candidates · Evidence</div>
-<h2>어느 역에서 탈까?</h2>
-<div id="candidate-list"></div>
-<div class="compare-note">각 추천 근거의 출처를 함께 표시합니다. 현재 추천은 아직 1호선·7호선 전체 실시간 ETA를 서로 계산한 최종 최적화 결과가 아닙니다.</div>
-</section>
-
-<section class="live">
-<div class="live-head"><div><div class="eyebrow">Live · Relevant Subway</div><h2>가산디지털단지역 · 7호선 · 석남 방향</h2><p id="subway-summary">실시간 데이터를 불러오는 중입니다.</p><div class="diagnostic" id="subway-diagnostic"></div></div><span class="badge" id="subway-time">업데이트 확인 중</span></div>
-<div id="subway-arrivals"></div>
-</section>
-
-<section class="live">
-<div class="live-head"><div><div class="eyebrow">Live · Bus</div><h2>롯데캐슬 정류장 · 18514</h2><p id="bus-summary">실시간 데이터를 불러오는 중입니다.</p><div class="diagnostic" id="bus-diagnostic"></div></div><span class="badge" id="bus-time">업데이트 확인 중</span></div>
-<div id="bus-arrivals"></div>
-</section>
-<footer>Gallae · AI Mobility Assistant · Live Proof of Concept</footer>
-</main>
+:root{color-scheme:light;--bg:#f7f7f5;--ink:#171717;--muted:#666;--line:#deded9;--card:#fff}*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Pretendard,"Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink)}main{max-width:980px;margin:0 auto;padding:36px 24px 88px}.top{display:flex;justify-content:space-between;gap:16px;margin-bottom:48px}.brand{font-size:22px;font-weight:800}.back{font-size:14px;color:var(--muted);text-decoration:none}.eyebrow{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}h1{font-size:clamp(44px,7vw,78px);line-height:1;letter-spacing:-.055em;margin:12px 0 18px}.lead{max-width:760px;font-size:clamp(20px,2.5vw,28px);line-height:1.4;margin:0 0 36px}.planner,.live,.compare{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px;margin:0 0 20px}.planner-grid{display:grid;grid-template-columns:1.5fr .8fr .9fr auto;gap:12px;align-items:end}.field label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px}.field input,.field select{width:100%;border:1px solid var(--line);border-radius:14px;background:#fff;padding:14px 15px;font:inherit}.planner button{border:0;border-radius:14px;background:var(--ink);color:#fff;padding:14px 18px;font:inherit;font-weight:700}.planner-note,.compare-note{font-size:13px;color:var(--muted);margin-top:12px;line-height:1.55}.planner-result,.compare{display:none}.planner-result{margin-top:20px;padding-top:20px;border-top:1px solid var(--line)}.decision{font-size:28px;font-weight:800;margin-bottom:10px}.decision-detail{font-size:15px;line-height:1.7;color:#444}.pill,.source{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:6px 9px;margin:6px 6px 0 0;font-size:12px}.source{font-weight:700;background:#fafafa}.compare h2,.live h2{font-size:24px;margin:0 0 10px}.candidate{padding:18px 0;border-top:1px solid var(--line)}.candidate-head{display:flex;justify-content:space-between;gap:12px}.candidate-title{font-size:18px;font-weight:800}.candidate-badge{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:6px 9px}.evidence{margin-top:12px;display:grid;gap:8px}.evidence-row{font-size:14px;line-height:1.55;color:#555}.live-head{display:flex;justify-content:space-between;gap:16px;margin-bottom:20px}.live p{font-size:16px;line-height:1.6;color:#4d4d4d;margin:0}.badge{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--muted)}.arrival{display:grid;grid-template-columns:1.1fr 1fr 1.5fr;gap:12px;padding:14px 0;border-top:1px solid var(--line);font-size:14px}.muted{color:var(--muted)}.diagnostic{margin-top:10px;font-size:12px;color:#777}footer{margin-top:56px;padding-top:24px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}@media(max-width:760px){.planner-grid,.arrival{grid-template-columns:1fr}.planner button{width:100%}.live-head{display:block}}
+</style></head><body><main>
+<div class="top"><div class="brand">갈래</div><a class="back" href="./">서비스 소개 보기</a></div><div class="eyebrow">Gallae · Live PoC</div><h1>오늘 어떻게 갈래?</h1><p class="lead">목적지와 도착시간을 입력하면, 검증된 이동 경험과 실시간 교통정보를 바탕으로 출발 판단을 테스트합니다.</p>
+<section class="planner"><div class="eyebrow">Trip Test · Input</div><div class="planner-grid"><div class="field"><label>목적지</label><input id="destination" placeholder="예: 시흥여성인력개발센터"></div><div class="field"><label>도착시간</label><input id="arrival-time" type="time"></div><div class="field"><label>이동 조건</label><select id="condition"><option value="dry">비 안 옴</option><option value="rain">비 옴</option></select></div><button id="planner-submit">판단하기</button></div><div class="planner-note">현재 1차 판단은 등록·검증된 목적지부터 제공합니다.</div><div class="planner-result" id="planner-result"></div></section>
+<section class="compare" id="route-compare"><div class="eyebrow">Route Candidates · Evidence</div><h2>어느 역에서 탈까?</h2><div id="candidate-list"></div><div class="compare-note">각 추천 근거는 source 메타데이터를 가지고 있으며, 그 값에 따라 화면 라벨을 렌더링합니다.</div></section>
+<section class="live"><div class="live-head"><div><div class="eyebrow">Live · Relevant Subway</div><h2>가산디지털단지역 · 7호선 · 석남 방향</h2><p id="subway-summary">실시간 데이터를 불러오는 중입니다.</p><div class="diagnostic" id="subway-diagnostic"></div></div><span class="badge" id="subway-time">업데이트 확인 중</span></div><div id="subway-arrivals"></div></section>
+<section class="live"><div class="live-head"><div><div class="eyebrow">Live · Bus</div><h2>롯데캐슬 정류장 · 18514</h2><p id="bus-summary">실시간 데이터를 불러오는 중입니다.</p><div class="diagnostic" id="bus-diagnostic"></div></div><span class="badge" id="bus-time">업데이트 확인 중</span></div><div id="bus-arrivals"></div></section><footer>Gallae · AI Mobility Assistant · Live Proof of Concept</footer></main>
 <script>
 const esc=(v='')=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 const formatTime=v=>v?`갱신 ${new Date(v).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}`:'대기 중';
-const normalize=s=>s.replace(/\s/g,'').toLowerCase();
 const subtractMinutes=(hhmm,mins)=>{const[h,m]=hhmm.split(':').map(Number);let t=(h*60+m-mins+1440)%1440;return`${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`};
-const sourceLabel={realtime:'API 실시간',measured:'사용자 실측',experience:'사용자 경험',constraint:'사용자 제약',rule:'PoC 규칙'};
-const sourceTag=type=>`<span class="source">${sourceLabel[type]||esc(type)}</span>`;
-
-const registered={
-  "시흥여성인력개발센터":{
-    aliases:["시흥여성인력개발센터"],
-    dry:{minutes:75,route:"가산디지털단지역 7호선 후보를 우선 비교",note:"비가 없을 때 실제 이동 기준"},
-    rain:{minutes:95,route:"롯데캐슬 정류장 버스 → 가산디지털단지역 7호선 후보를 우선 비교",note:"비 오는 날 실제 이동 기준"}
-  }
+const SOURCE_LABELS={api:'API 실시간',measured:'사용자 실측',preference:'경험/선호',constraint:'사용자 제약',rule:'PoC 규칙'};
+const sourceTag=source=>`<span class="source" data-source="${esc(source)}">${SOURCE_LABELS[source]||esc(source)}</span>`;
+const evidenceRow=e=>`<div class="evidence-row">${sourceTag(e.source)} ${esc(e.text)}</div>`;
+const ROUTES={
+ gasan7:{title:'가산디지털단지역 · 7호선',badge:'현재 1차 추천',evidence:{dry:[{source:'measured',text:'e-bike 접근 약 10분'},{source:'constraint',text:'비가 오지 않아 e-bike 사용 가능'},{source:'preference',text:'7호선→서해선 경로를 실제 이동 기준으로 사용해 왔음'},{source:'preference',text:'1호선보다 지연 변동성을 낮게 보는 사용자 기준'}],rain:[{source:'measured',text:'비가 오지 않을 때 e-bike 접근 약 10분'},{source:'constraint',text:'비가 오면 e-bike 제외, 롯데캐슬 정류장 버스로 접근'},{source:'preference',text:'7호선→서해선 경로를 실제 이동 기준으로 사용해 왔음'},{source:'preference',text:'1호선보다 지연 변동성을 낮게 보는 사용자 기준'}]}},
+ doksan1:{title:'독산역 · 1호선',badge:'비교 후보',evidence:{dry:[{source:'measured',text:'e-bike 접근 약 3~5분으로 가산보다 가까움'},{source:'constraint',text:'비가 오지 않아 e-bike 사용 가능'},{source:'preference',text:'실제 이동 경험에서 1호선 연착이 잦아 기본 선호도가 낮음'},{source:'rule',text:'아직 1호선 실시간 ETA 비교는 연결 전'}],rain:[{source:'measured',text:'비가 오지 않을 때 e-bike 접근 약 3~5분'},{source:'constraint',text:'비가 오면 e-bike 접근 이점 사용 불가'},{source:'preference',text:'실제 이동 경험에서 1호선 연착이 잦아 기본 선호도가 낮음'},{source:'rule',text:'아직 1호선 실시간 ETA 비교는 연결 전'}]}}
 };
-function findRegistered(q){const n=normalize(q);return Object.entries(registered).find(([,v])=>v.aliases.some(a=>normalize(a)===n));}
-
-function renderCandidates(condition){
-  const box=document.getElementById('route-compare'),list=document.getElementById('candidate-list');
-  box.style.display='block';
-  const dry=condition==='dry';
-  list.innerHTML=`
-    <div class="candidate">
-      <div class="candidate-head"><div class="candidate-title">가산디지털단지역 · 7호선</div><span class="candidate-badge">현재 1차 추천</span></div>
-      <div class="evidence">
-        <div class="evidence-row">${sourceTag('measured')} ${dry?'e-bike 접근 약 10분':'비가 오지 않을 때 e-bike 접근 약 10분'}</div>
-        <div class="evidence-row">${sourceTag('constraint')} ${dry?'e-bike 사용 가능':'비가 오면 e-bike 제외, 롯데캐슬 정류장 버스로 접근'}</div>
-        <div class="evidence-row">${sourceTag('experience')} 7호선→서해선 경로를 실제 이동 기준으로 사용해 왔음</div>
-        <div class="evidence-row">${sourceTag('experience')} 1호선보다 지연 변동성을 낮게 보는 사용자 기준</div>
-        <div class="evidence-row" id="gasan-live-evidence">${sourceTag('realtime')} 7호선 실시간 정보 연결 확인 중</div>
-      </div>
-    </div>
-    <div class="candidate">
-      <div class="candidate-head"><div class="candidate-title">독산역 · 1호선</div><span class="candidate-badge">비교 후보</span></div>
-      <div class="evidence">
-        <div class="evidence-row">${sourceTag('measured')} ${dry?'e-bike 접근 약 3~5분으로 가산보다 가까움':'비가 오지 않을 때 e-bike 접근 약 3~5분'}</div>
-        <div class="evidence-row">${sourceTag('constraint')} ${dry?'e-bike 사용 가능':'비가 오면 e-bike 접근 이점 사용 불가'}</div>
-        <div class="evidence-row">${sourceTag('experience')} 실제 이동 경험에서 1호선 연착이 잦아 기본 선호도가 낮음</div>
-        <div class="evidence-row">${sourceTag('rule')} 아직 1호선 실시간 ETA 비교는 연결 전</div>
-      </div>
-    </div>`;
-}
-
-document.getElementById('planner-submit').addEventListener('click',()=>{
-  const destination=document.getElementById('destination').value.trim();
-  const arrival=document.getElementById('arrival-time').value;
-  const condition=document.getElementById('condition').value;
-  const result=document.getElementById('planner-result');
-  result.style.display='block';
-  if(!destination||!arrival){result.innerHTML='목적지와 도착시간을 모두 입력해 주세요.';document.getElementById('route-compare').style.display='none';return;}
-  const found=findRegistered(destination);
-  if(!found){result.innerHTML=`<div class="decision">${esc(destination)} · 검증 필요</div><div class="decision-detail">아직 등록되지 않은 목적지라 임의로 출발시간을 계산하지 않습니다.</div>`;document.getElementById('route-compare').style.display='none';return;}
-  const[name,profile]=found,rule=profile[condition],depart=subtractMinutes(arrival,rule.minutes);
-  result.innerHTML=`<div class="decision">${esc(depart)} 출발 권장</div><div class="decision-detail"><strong>${esc(name)}</strong> · ${esc(arrival)} 도착 목표<br>${esc(rule.route)}<br><span class="muted">${esc(rule.note)} · 도착 ${rule.minutes}분 전 기준</span><br>${sourceTag('rule')}<span class="pill">${condition==='rain'?'비 오는 날':'비 안 오는 날'}</span><span class="pill">1차 PoC 판단</span></div>`;
-  renderCandidates(condition);
-});
-
+const registered={'시흥여성인력개발센터':{dry:{minutes:75,route:'가산디지털단지역 7호선 후보를 우선 비교'},rain:{minutes:95,route:'롯데캐슬 정류장 버스 → 가산디지털단지역 7호선 후보를 우선 비교'}}};
+let latestSubway=[];
+function renderCandidates(condition){const key=condition==='rain'?'rain':'dry';const cards=Object.values(ROUTES).map((r,i)=>`<div class="candidate"><div class="candidate-head"><div class="candidate-title">${esc(r.title)}</div><span class="candidate-badge">${esc(r.badge)}</span></div><div class="evidence">${r.evidence[key].map(evidenceRow).join('')}${i===0?`<div class="evidence-row" id="gasan-live-evidence">${evidenceRow({source:'api',text:'7호선 실시간 정보 연결 확인 중'})}</div>`:''}</div></div>`).join('');document.getElementById('candidate-list').innerHTML=cards;document.getElementById('route-compare').style.display='block';updateLiveEvidence();}
+function updateLiveEvidence(){const el=document.getElementById('gasan-live-evidence');if(!el)return;const text=latestSubway.length?`현재 석남 방향 ${latestSubway.length}건 · ${latestSubway[0].arrival_message||'도착정보 확인 중'}`:'현재 석남 방향 열차 없음';el.innerHTML=sourceTag('api')+' '+esc(text);}
+document.getElementById('planner-submit').addEventListener('click',()=>{const destination=document.getElementById('destination').value.trim(),arrival=document.getElementById('arrival-time').value,condition=document.getElementById('condition').value,result=document.getElementById('planner-result');result.style.display='block';const profile=registered[destination];if(!profile||!arrival){result.innerHTML=!arrival?'목적지와 도착시간을 모두 입력해 주세요.':`<div class="decision">${esc(destination)} · 검증 필요</div>`;return}const rule=profile[condition],depart=subtractMinutes(arrival,rule.minutes);result.innerHTML=`<div class="decision">${depart} 출발 권장</div><div class="decision-detail"><strong>${esc(destination)}</strong> · ${esc(arrival)} 도착 목표<br>${esc(rule.route)}<br>${sourceTag('rule')} 도착 ${rule.minutes}분 전 기준</div>`;renderCandidates(condition)});
 const isTargetDirection=x=>{const d=String(x.direction??'').trim().toLowerCase();return d==='하행'||d==='외선'||d==='1'||d==='down'||d==='outbound';};
-fetch('./data/subway.json?ts='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(data=>{
-  const all=data.arrivals||[];const list=all.filter(isTargetDirection);
-  document.getElementById('subway-time').textContent=formatTime(data.updated_at);
-  document.getElementById('subway-summary').textContent=data.status==='ok'?(list.length?`석남 방향 7호선 열차 ${list.length}건`:'방향 데이터는 수신했지만 현재 석남 방향으로 분류된 열차가 없습니다.'):'실시간 지하철 데이터를 확인하지 못했습니다.';
-  document.getElementById('subway-diagnostic').textContent=data.status==='ok'?(all.length&&!list.length?`수신 direction 값: ${[...new Set(all.map(x=>String(x.direction??'')))].join(', ')||'없음'}`:''):(data.error?`진단: ${data.error}`:'진단 정보 없음');
-  document.getElementById('subway-arrivals').innerHTML=list.map(x=>`<div class="arrival"><strong>${esc(x.destination||x.train_line||'행선지 확인 중')}</strong><span>${esc(x.arrival_message||'-')}</span><span class="muted">${esc(x.current_location||'')}</span></div>`).join('');
-  const evidence=document.getElementById('gasan-live-evidence');
-  if(evidence){evidence.innerHTML=list.length?`${sourceTag('realtime')} 현재 석남 방향 ${list.length}건 · ${esc(list[0].arrival_message||'도착정보 확인 중')}`:`${sourceTag('realtime')} 현재 석남 방향 열차 없음`;}
-}).catch(err=>{document.getElementById('subway-summary').textContent='실시간 데이터를 불러오지 못했습니다.';document.getElementById('subway-diagnostic').textContent=`진단: ${err.message||'JSON 로드 실패'}`});
-
-fetch('./data/bus.json?ts='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(data=>{
-  const list=data.arrivals||[];
-  document.getElementById('bus-time').textContent=formatTime(data.updated_at);
-  document.getElementById('bus-summary').textContent=data.status==='ok'?(list.length?`현재 확인되는 버스 노선 ${list.length}개`:'현재 도착예정 버스가 없습니다.'):'실시간 버스 데이터를 확인하지 못했습니다.';
-  document.getElementById('bus-diagnostic').textContent=data.status==='ok'?'':(data.error?`진단: ${data.error}`:'진단 정보 없음');
-  document.getElementById('bus-arrivals').innerHTML=list.slice(0,8).map(x=>`<div class="arrival"><strong>${esc(x.route||'노선')}</strong><span>${esc(x.first_message||'첫차 정보 없음')}</span><span class="muted">${esc(x.second_message||'')}</span></div>`).join('');
-}).catch(err=>{document.getElementById('bus-summary').textContent='실시간 데이터를 불러오지 못했습니다.';document.getElementById('bus-diagnostic').textContent=`진단: ${err.message||'JSON 로드 실패'}`});
-</script>
-</body>
-</html>
+fetch('./data/subway.json?ts='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(data=>{const all=data.arrivals||[];latestSubway=all.filter(isTargetDirection);document.getElementById('subway-time').textContent=formatTime(data.updated_at);document.getElementById('subway-summary').textContent=data.status==='ok'?(latestSubway.length?`석남 방향 7호선 열차 ${latestSubway.length}건`:'현재 석남 방향 열차가 없습니다.'):'실시간 지하철 데이터를 확인하지 못했습니다.';document.getElementById('subway-arrivals').innerHTML=latestSubway.map(x=>`<div class="arrival"><strong>${esc(x.destination||'행선지')}</strong><span>${esc(x.arrival_message||'-')}</span><span class="muted">${esc(x.current_location||'')}</span></div>`).join('');updateLiveEvidence()}).catch(e=>document.getElementById('subway-diagnostic').textContent='진단: '+e.message);
+fetch('./data/bus.json?ts='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(data=>{const list=data.arrivals||[];document.getElementById('bus-time').textContent=formatTime(data.updated_at);document.getElementById('bus-summary').textContent=data.status==='ok'?`현재 확인되는 버스 노선 ${list.length}개`:'실시간 버스 데이터를 확인하지 못했습니다.';document.getElementById('bus-arrivals').innerHTML=list.slice(0,8).map(x=>`<div class="arrival"><strong>${esc(x.route||'노선')}</strong><span>${esc(x.first_message||'-')}</span><span class="muted">${esc(x.second_message||'')}</span></div>`).join('')}).catch(e=>document.getElementById('bus-diagnostic').textContent='진단: '+e.message);
+</script></body></html>
