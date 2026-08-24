@@ -1,17 +1,17 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-08-25T00:13:15+09:00",
-  "finished_at": "2026-08-25T00:13:18+09:00",
-  "duration_seconds": 2.77,
+  "started_at": "2026-08-25T01:19:41+09:00",
+  "finished_at": "2026-08-25T01:19:44+09:00",
+  "duration_seconds": 3.0,
   "subway": {
     "status": "ok",
-    "arrival_count": 4,
+    "arrival_count": 0,
     "error": null
   },
   "doksan_line1": {
     "status": "ok",
-    "row_count": 4,
+    "row_count": 1,
     "error": null
   },
   "bus": {
