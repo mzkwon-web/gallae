@@ -100,7 +100,7 @@ jobs:
                   rows = [r for r in (raw.get('realtimeArrivalList') or []) if str(r.get('subwayId')) == '1001']
                   fields = [
                       'subwayId','updnLine','bstatnNm','trainLineNm','btrainNo','btrainSttus',
-                      'barvlDt','arvlMsg2','arvlMsg3','recptnDt','statnFid','statnTid',
+                      'barvlDt','arvlMsg2','arvlMsg3','arvlCd','subwayHeading','recptnDt','statnFid','statnTid',
                       'statnId','statnNm','ordkey'
                   ]
                   compact = [{k:r.get(k) for k in fields if k in r} for r in rows]
@@ -219,6 +219,7 @@ jobs:
 
           kst = timezone(timedelta(hours=9))
           app = Path('app.html').read_text(encoding='utf-8')
+          source_registry = Path('lib/source-types.js').read_text(encoding='utf-8')
           def load_json(path): return json.loads(Path(path).read_text(encoding='utf-8'))
           checks, errors = {}, []
 
@@ -247,17 +248,27 @@ jobs:
               try: load_json(path); checks[key] = 'ok'
               except Exception as e: checks[key] = 'error'; errors.append(f'{path}: {e}')
 
-          required_labels = ['API 실시간','사용자 실측','사용자 경험/선호','사용자 제약','PoC 규칙']
-          missing_labels = [x for x in required_labels if x not in app]
+          required_sources = ['api','measured','preference','constraint','rule']
+          registry_markers = {s: bool(re.search(r"['\"]" + re.escape(s) + r"['\"]", source_registry)) for s in required_sources}
+          checks['source_registry'] = 'ok' if all(registry_markers.values()) else 'error'
+          checks['source_registry_present'] = registry_markers
+          if checks['source_registry'] == 'error': errors.append('Missing canonical source types: ' + ', '.join(k for k,v in registry_markers.items() if not v))
+
+          required_labels = ['API 실시간','사용자 실측','사용자 선호','이동 제약','PoC 규칙']
+          missing_labels = [x for x in required_labels if x not in source_registry]
           checks['source_labels'] = 'ok' if not missing_labels else 'error'
           checks['missing_source_labels'] = missing_labels
-          if missing_labels: errors.append('Missing source labels: ' + ', '.join(missing_labels))
+          if missing_labels: errors.append('Missing canonical source labels: ' + ', '.join(missing_labels))
 
-          required_sources = ['api','measured','preference','constraint','rule']
-          source_markers = {s: bool(re.search(r"source\s*:\s*['\"]" + re.escape(s) + r"['\"]", app)) for s in required_sources}
-          checks['source_metadata'] = 'ok' if all(source_markers.values()) else 'error'
-          checks['source_metadata_present'] = source_markers
-          if checks['source_metadata'] == 'error': errors.append('Missing source metadata values: ' + ', '.join(k for k,v in source_markers.items() if not v))
+          source_usage = {
+              s: bool(re.search(r"source\s*:\s*['\"]" + re.escape(s) + r"['\"]", app))
+                 or bool(re.search(r"sourceTag\(\s*['\"]" + re.escape(s) + r"['\"]", app))
+                 or bool(re.search(r"source\s*:\s*SOURCE\." + re.escape(s.upper()) + r"\b", app))
+              for s in required_sources
+          }
+          checks['source_metadata'] = 'ok' if registry_markers.get('api') and any(source_usage.values()) else 'error'
+          checks['source_metadata_present'] = source_usage
+          if checks['source_metadata'] == 'error': errors.append('No evidence source usage found in app.html')
 
           renderer_markers = ['SOURCE_LABELS','sourceTag','evidenceRow','data-source']
           missing_renderer = [m for m in renderer_markers if m not in app]
@@ -271,7 +282,7 @@ jobs:
           checks['missing_filter_markers'] = missing_filters
           if missing_filters: errors.append('Direction filter markers missing: ' + ', '.join(missing_filters))
 
-          structural = ['subway_json','doksan_line1_json','bus_json','last_run_json','source_labels','source_metadata','source_renderer','direction_filter_code','direction_field']
+          structural = ['subway_json','doksan_line1_json','bus_json','last_run_json','source_registry','source_labels','source_metadata','source_renderer','direction_filter_code','direction_field']
           status = 'ok' if all(checks.get(k) == 'ok' for k in structural) else 'error'
           verification = {'status':status,'verified_at':datetime.now(kst).isoformat(timespec='seconds'),'build_commit':os.environ.get('BUILD_COMMIT'),'checks':checks,'errors':errors}
           Path('data/verification.json').write_text(json.dumps(verification, ensure_ascii=False, indent=2), encoding='utf-8')
