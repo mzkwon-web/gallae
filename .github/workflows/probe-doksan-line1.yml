@@ -1,0 +1,90 @@
+name: Probe Doksan Line 1 raw response
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/probe-doksan-line1.yml'
+
+permissions:
+  contents: read
+
+env:
+  STATION_NAME: 독산
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch Doksan raw subway response
+        env:
+          SEOUL_SUBWAY_API_KEY: ${{ secrets.SEOUL_SUBWAY_API_KEY }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          from datetime import datetime, timezone, timedelta
+          from pathlib import Path
+
+          key = (os.environ.get('SEOUL_SUBWAY_API_KEY') or '').strip()
+          if not key:
+              raise SystemExit('SEOUL_SUBWAY_API_KEY is missing')
+
+          station_name = os.environ.get('STATION_NAME', '독산')
+          station = urllib.parse.quote(station_name)
+          url = f'http://swopenapi.seoul.go.kr/api/subway/{key}/json/realtimeStationArrival/0/50/{station}'
+          req = urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0 gallae-poc/1.0'})
+          with urllib.request.urlopen(req, timeout=25) as response:
+              raw = json.loads(response.read().decode('utf-8'))
+
+          rows = raw.get('realtimeArrivalList') or []
+          line1_rows = [r for r in rows if str(r.get('subwayId')) == '1001']
+
+          fields_of_interest = [
+              'subwayId', 'updnLine', 'bstatnNm', 'trainLineNm', 'btrainNo',
+              'arvlMsg2', 'arvlMsg3', 'recptnDt', 'btrainSttus', 'barvlDt',
+              'statnFid', 'statnTid', 'statnId', 'statnNm', 'ordkey'
+          ]
+
+          compact = []
+          for row in line1_rows:
+              compact.append({k: row.get(k) for k in fields_of_interest if k in row})
+
+          all_keys = sorted({k for row in line1_rows for k in row.keys()})
+          kst = timezone(timedelta(hours=9))
+          payload = {
+              'status': 'ok',
+              'station': station_name,
+              'fetched_at': datetime.now(kst).isoformat(timespec='seconds'),
+              'total_station_rows': len(rows),
+              'line1_rows': len(line1_rows),
+              'observed_keys': all_keys,
+              'compact_rows': compact,
+              'raw_line1_rows': line1_rows,
+          }
+
+          Path('probe-output').mkdir(exist_ok=True)
+          Path('probe-output/doksan-line1-raw.json').write_text(
+              json.dumps(payload, ensure_ascii=False, indent=2), encoding='utf-8'
+          )
+
+          print('=== DOKSAN LINE 1 PROBE ===')
+          print('station rows:', len(rows))
+          print('line1 rows:', len(line1_rows))
+          print('observed keys:', ', '.join(all_keys))
+          print('compact rows:')
+          print(json.dumps(compact, ensure_ascii=False, indent=2))
+
+          if not line1_rows:
+              raise SystemExit('No subwayId=1001 rows returned for Doksan')
+          PY
+
+      - name: Upload Doksan probe artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: doksan-line1-probe
+          path: probe-output/doksan-line1-raw.json
+          retention-days: 7
