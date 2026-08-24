@@ -214,7 +214,7 @@ jobs:
           BUILD_COMMIT: ${{ github.sha }}
         run: |
           python - <<'PY'
-          import json, os
+          import json, os, re
           from datetime import datetime, timezone, timedelta
           from pathlib import Path
 
@@ -255,12 +255,30 @@ jobs:
               checks['last_run_json'] = 'error'
               errors.append(f'last-run.json: {e}')
 
-          required_labels = ['API 실시간','사용자 실측','사용자 경험','사용자 제약','PoC 규칙']
+          required_labels = ['API 실시간','사용자 실측','사용자 경험/선호','사용자 제약','PoC 규칙']
           missing_labels = [label for label in required_labels if label not in app]
           checks['source_labels'] = 'ok' if not missing_labels else 'error'
           checks['missing_source_labels'] = missing_labels
           if missing_labels:
               errors.append('Missing source labels: ' + ', '.join(missing_labels))
+
+          required_sources = ['api','measured','preference','constraint','rule']
+          source_markers = {
+              source: bool(re.search(r"source\s*:\s*['\"]" + re.escape(source) + r"['\"]", app))
+              for source in required_sources
+          }
+          checks['source_metadata'] = 'ok' if all(source_markers.values()) else 'error'
+          checks['source_metadata_present'] = source_markers
+          if checks['source_metadata'] == 'error':
+              missing = [k for k, present in source_markers.items() if not present]
+              errors.append('Missing source metadata values: ' + ', '.join(missing))
+
+          renderer_markers = ['SOURCE_LABELS','sourceTag','evidenceRow','data-source']
+          missing_renderer_markers = [m for m in renderer_markers if m not in app]
+          checks['source_renderer'] = 'ok' if not missing_renderer_markers else 'error'
+          checks['missing_source_renderer_markers'] = missing_renderer_markers
+          if missing_renderer_markers:
+              errors.append('Source renderer markers missing: ' + ', '.join(missing_renderer_markers))
 
           filter_markers = ['isTargetDirection', "d==='1'", "d==='하행'", "d==='외선'"]
           missing_markers = [m for m in filter_markers if m not in app]
@@ -269,7 +287,7 @@ jobs:
           if missing_markers:
               errors.append('Direction filter markers missing: ' + ', '.join(missing_markers))
 
-          structural = ['subway_json','bus_json','last_run_json','source_labels','direction_filter_code','direction_field']
+          structural = ['subway_json','bus_json','last_run_json','source_labels','source_metadata','source_renderer','direction_filter_code','direction_field']
           status = 'ok' if all(checks.get(k) == 'ok' for k in structural) else 'error'
           verification = {
               'status': status,
@@ -285,16 +303,13 @@ jobs:
           PY
 
       - name: Configure Pages
-        if: always()
         uses: actions/configure-pages@v5
 
       - name: Upload site artifact
-        if: always()
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
 
       - name: Deploy to GitHub Pages
-        if: always()
         id: deployment
         uses: actions/deploy-pages@v4
