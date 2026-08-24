@@ -45,8 +45,9 @@ jobs:
 
           fields_of_interest = [
               'subwayId', 'updnLine', 'bstatnNm', 'trainLineNm', 'btrainNo',
-              'arvlMsg2', 'arvlMsg3', 'recptnDt', 'btrainSttus', 'barvlDt',
-              'statnFid', 'statnTid', 'statnId', 'statnNm', 'ordkey'
+              'arvlMsg2', 'arvlMsg3', 'arvlCd', 'subwayHeading', 'recptnDt',
+              'btrainSttus', 'barvlDt', 'statnFid', 'statnTid', 'statnId',
+              'statnNm', 'ordkey'
           ]
 
           compact = []
