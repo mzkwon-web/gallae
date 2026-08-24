@@ -183,7 +183,7 @@ jobs:
 
           finished_at = datetime.now(kst)
           checks_ok = all(v.get('status') == 'ok' for v in source_checks.values())
-          overall = 'ok' if subway_payload.get('status') == 'ok' and bus_payload.get('status') == 'ok' and checks_ok else 'degraded'
+          overall = 'ok' if subway_payload.get('status') == 'ok' and doksan_payload.get('status') == 'ok' and bus_payload.get('status') == 'ok' and checks_ok else 'degraded'
           last_run = {
               'status':'ok' if bus_payload.get('status') == 'ok' else 'error',
               'overall_status':overall,
@@ -191,7 +191,13 @@ jobs:
               'finished_at':finished_at.isoformat(timespec='seconds'),
               'duration_seconds':round((finished_at-started_at).total_seconds(),2),
               'subway':{'status':subway_payload.get('status'),'arrival_count':len(subway_payload.get('arrivals') or []),'error':subway_payload.get('error')},
-              'doksan_line1':{'status':doksan_payload.get('status'),'row_count':len(doksan_payload.get('rows') or []),'error':doksan_payload.get('error')},
+              'doksan_line1':{
+                  'status':doksan_payload.get('status'),
+                  'row_count':len(doksan_payload.get('rows') or []),
+                  'error':doksan_payload.get('error'),
+                  'observed_keys':doksan_payload.get('observed_keys') or [],
+                  'sample_rows':doksan_payload.get('rows') or [],
+              },
               'bus':{'status':bus_payload.get('status'),'source':bus_payload.get('source'),'stage':bus_payload.get('stage'),'arrival_count':len(bus_payload.get('arrivals') or []),'error':bus_payload.get('error')},
               'source_checks':source_checks,
           }
