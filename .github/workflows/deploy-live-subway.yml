@@ -59,8 +59,9 @@ jobs:
           def normalized_key(value):
               return urllib.parse.unquote((value or '').strip())
 
-          # Subway
-          subway_key = os.environ.get('SEOUL_SUBWAY_API_KEY')
+          subway_key = (os.environ.get('SEOUL_SUBWAY_API_KEY') or '').strip()
+
+          # Gasan Digital Complex, Line 7
           subway_payload = {'status':'error','station':'가산디지털단지','line':'7호선','updated_at':now,'arrivals':[]}
           if subway_key:
               try:
@@ -86,21 +87,42 @@ jobs:
               subway_payload['error'] = 'SEOUL_SUBWAY_API_KEY is missing'
           Path('data/subway.json').write_text(json.dumps(subway_payload, ensure_ascii=False, indent=2), encoding='utf-8')
 
-          # Seoul bus: verified locally using data.go.kr serviceKey
+          # Doksan, Line 1: publish observed raw fields needed for phase-2 field validation.
+          doksan_payload = {
+              'status':'error', 'station':'독산', 'line':'1호선', 'updated_at':now,
+              'observed_keys':[], 'rows':[]
+          }
+          if subway_key:
+              try:
+                  station = urllib.parse.quote('독산')
+                  url = f'http://swopenapi.seoul.go.kr/api/subway/{subway_key}/json/realtimeStationArrival/0/50/{station}'
+                  raw = json.loads(fetch_bytes(url, timeout=20, attempts=3).decode('utf-8'))
+                  rows = [r for r in (raw.get('realtimeArrivalList') or []) if str(r.get('subwayId')) == '1001']
+                  fields = [
+                      'subwayId','updnLine','bstatnNm','trainLineNm','btrainNo','btrainSttus',
+                      'barvlDt','arvlMsg2','arvlMsg3','recptnDt','statnFid','statnTid',
+                      'statnId','statnNm','ordkey'
+                  ]
+                  compact = [{k:r.get(k) for k in fields if k in r} for r in rows]
+                  observed = sorted({k for r in rows for k in r.keys()})
+                  doksan_payload.update(status='ok', observed_keys=observed, rows=compact, row_count=len(rows))
+              except Exception as e:
+                  doksan_payload['error'] = str(e)
+          else:
+              doksan_payload['error'] = 'SEOUL_SUBWAY_API_KEY is missing'
+          Path('data/doksan-line1.json').write_text(json.dumps(doksan_payload, ensure_ascii=False, indent=2), encoding='utf-8')
+
           def fetch_seoul_bus(ars_id='18514'):
               key = os.environ.get('DATA_GO_KR_BUS_API_KEY')
               if not key:
                   raise RuntimeError('DATA_GO_KR_BUS_API_KEY is missing')
               base = 'http://ws.bus.go.kr/api/rest/stationinfo/getStationByUid'
-              query = urllib.parse.urlencode({
-                  'serviceKey': normalized_key(key),
-                  'arsId': ars_id,
-              }, safe='%')
+              query = urllib.parse.urlencode({'serviceKey': normalized_key(key), 'arsId': ars_id}, safe='%')
               raw = fetch_bytes(base + '?' + query, timeout=30, attempts=3)
               root = ET.fromstring(raw)
               header_cd = (root.findtext('.//headerCd') or '').strip()
               header_msg = (root.findtext('.//headerMsg') or '').strip()
-              if header_cd not in ('0', '00', ''):
+              if header_cd not in ('0','00',''):
                   raise RuntimeError(f'SEOUL {header_cd}: {header_msg}')
               out = []
               for item in root.findall('.//itemList'):
@@ -114,27 +136,22 @@ jobs:
                       'first_stops': t('sectOrd1'),
                       'second_message': t('arrmsg2') or '',
                       'destination': t('stNm') or '',
-                      'source': 'seoul-data-go-kr',
+                      'source':'seoul-data-go-kr',
                   })
               return out
 
-          # Gyeonggi health check
           def probe_gyeonggi(station_id='200000078'):
               key = os.environ.get('GYEONGGI_BUS_API_KEY')
               if not key:
                   raise RuntimeError('GYEONGGI_BUS_API_KEY is missing')
               base = 'https://apis.data.go.kr/6410000/busarrivalservice/v2/getBusArrivalListv2'
-              query = urllib.parse.urlencode({
-                  'format': 'json',
-                  'serviceKey': normalized_key(key),
-                  'stationId': station_id,
-              }, safe='%')
+              query = urllib.parse.urlencode({'format':'json','serviceKey':normalized_key(key),'stationId':station_id}, safe='%')
               raw = json.loads(fetch_bytes(base + '?' + query, timeout=25, attempts=2).decode('utf-8', errors='replace'))
               response = raw.get('response', {}) if isinstance(raw, dict) else {}
               header = response.get('msgHeader', {}) if isinstance(response, dict) else {}
-              code = str(header.get('resultCode', ''))
+              code = str(header.get('resultCode',''))
               msg = header.get('resultMessage') or header.get('resultMsg') or ''
-              if code not in ('0', '00'):
+              if code not in ('0','00'):
                   raise RuntimeError(f'GYEONGGI {code}: {msg}')
               body = response.get('msgBody', {}) if isinstance(response, dict) else {}
               items = body.get('busArrivalList', []) if isinstance(body, dict) else []
@@ -143,14 +160,9 @@ jobs:
               return len(items or [])
 
           bus_payload = {
-              'status':'error',
-              'source':'seoul-data-go-kr',
-              'stop_name':'롯데캐슬 정류장',
-              'official_stop_name':'금천현대아파트.청소년문화의집',
-              'ars_id':'18514',
-              'updated_at':now,
-              'arrivals':[],
-              'stage':'arrival_lookup'
+              'status':'error','source':'seoul-data-go-kr','stop_name':'롯데캐슬 정류장',
+              'official_stop_name':'금천현대아파트.청소년문화의집','ars_id':'18514',
+              'updated_at':now,'arrivals':[],'stage':'arrival_lookup'
           }
           try:
               arrivals = fetch_seoul_bus('18514')
@@ -160,18 +172,8 @@ jobs:
           Path('data/bus.json').write_text(json.dumps(bus_payload, ensure_ascii=False, indent=2), encoding='utf-8')
 
           source_checks = {
-              'seoul': {
-                  'status': bus_payload.get('status'),
-                  'source': bus_payload.get('source'),
-                  'stage': bus_payload.get('stage'),
-                  'error': bus_payload.get('error'),
-              },
-              'gyeonggi': {
-                  'status':'error',
-                  'source':'gyeonggi_bus_api',
-                  'test_station_id':'200000078',
-                  'error':None,
-              },
+              'seoul': {'status':bus_payload.get('status'),'source':bus_payload.get('source'),'stage':bus_payload.get('stage'),'error':bus_payload.get('error')},
+              'gyeonggi': {'status':'error','source':'gyeonggi_bus_api','test_station_id':'200000078','error':None},
           }
           try:
               gy_count = probe_gyeonggi()
@@ -187,19 +189,10 @@ jobs:
               'overall_status':overall,
               'started_at':started_at.isoformat(timespec='seconds'),
               'finished_at':finished_at.isoformat(timespec='seconds'),
-              'duration_seconds':round((finished_at - started_at).total_seconds(), 2),
-              'subway':{
-                  'status':subway_payload.get('status'),
-                  'arrival_count':len(subway_payload.get('arrivals') or []),
-                  'error':subway_payload.get('error'),
-              },
-              'bus':{
-                  'status':bus_payload.get('status'),
-                  'source':bus_payload.get('source'),
-                  'stage':bus_payload.get('stage'),
-                  'arrival_count':len(bus_payload.get('arrivals') or []),
-                  'error':bus_payload.get('error'),
-              },
+              'duration_seconds':round((finished_at-started_at).total_seconds(),2),
+              'subway':{'status':subway_payload.get('status'),'arrival_count':len(subway_payload.get('arrivals') or []),'error':subway_payload.get('error')},
+              'doksan_line1':{'status':doksan_payload.get('status'),'row_count':len(doksan_payload.get('rows') or []),'error':doksan_payload.get('error')},
+              'bus':{'status':bus_payload.get('status'),'source':bus_payload.get('source'),'stage':bus_payload.get('stage'),'arrival_count':len(bus_payload.get('arrivals') or []),'error':bus_payload.get('error')},
               'source_checks':source_checks,
           }
           Path('data/last-run.json').write_text(json.dumps(last_run, ensure_ascii=False, indent=2), encoding='utf-8')
@@ -220,12 +213,8 @@ jobs:
 
           kst = timezone(timedelta(hours=9))
           app = Path('app.html').read_text(encoding='utf-8')
-
-          def load_json(path):
-              return json.loads(Path(path).read_text(encoding='utf-8'))
-
-          checks = {}
-          errors = []
+          def load_json(path): return json.loads(Path(path).read_text(encoding='utf-8'))
+          checks, errors = {}, []
 
           try:
               subway = load_json('data/subway.json')
@@ -235,71 +224,53 @@ jobs:
               checks['direction_field'] = 'ok' if not arrivals or all(directions) else 'error'
               checks['received_directions'] = sorted(set(d for d in directions if d))
               checks['target_direction_count'] = sum(d.lower() in {'하행','외선','1','down','outbound'} for d in directions)
-              if checks['direction_field'] == 'error':
-                  errors.append('One or more subway arrivals are missing direction')
+              if checks['direction_field'] == 'error': errors.append('One or more subway arrivals are missing direction')
           except Exception as e:
-              checks['subway_json'] = 'error'
-              errors.append(f'subway.json: {e}')
+              checks['subway_json'] = 'error'; errors.append(f'subway.json: {e}')
 
           try:
-              load_json('data/bus.json')
-              checks['bus_json'] = 'ok'
+              doksan = load_json('data/doksan-line1.json')
+              checks['doksan_line1_json'] = 'ok' if doksan.get('status') == 'ok' else 'error'
+              checks['doksan_line1_row_count'] = len(doksan.get('rows') or [])
+              checks['doksan_line1_observed_keys'] = doksan.get('observed_keys') or []
+              if checks['doksan_line1_json'] == 'error': errors.append('doksan-line1.json: ' + str(doksan.get('error')))
           except Exception as e:
-              checks['bus_json'] = 'error'
-              errors.append(f'bus.json: {e}')
+              checks['doksan_line1_json'] = 'error'; errors.append(f'doksan-line1.json: {e}')
 
-          try:
-              load_json('data/last-run.json')
-              checks['last_run_json'] = 'ok'
-          except Exception as e:
-              checks['last_run_json'] = 'error'
-              errors.append(f'last-run.json: {e}')
+          for path, key in [('data/bus.json','bus_json'),('data/last-run.json','last_run_json')]:
+              try: load_json(path); checks[key] = 'ok'
+              except Exception as e: checks[key] = 'error'; errors.append(f'{path}: {e}')
 
           required_labels = ['API 실시간','사용자 실측','사용자 경험/선호','사용자 제약','PoC 규칙']
-          missing_labels = [label for label in required_labels if label not in app]
+          missing_labels = [x for x in required_labels if x not in app]
           checks['source_labels'] = 'ok' if not missing_labels else 'error'
           checks['missing_source_labels'] = missing_labels
-          if missing_labels:
-              errors.append('Missing source labels: ' + ', '.join(missing_labels))
+          if missing_labels: errors.append('Missing source labels: ' + ', '.join(missing_labels))
 
           required_sources = ['api','measured','preference','constraint','rule']
-          source_markers = {
-              source: bool(re.search(r"source\s*:\s*['\"]" + re.escape(source) + r"['\"]", app))
-              for source in required_sources
-          }
+          source_markers = {s: bool(re.search(r"source\s*:\s*['\"]" + re.escape(s) + r"['\"]", app)) for s in required_sources}
           checks['source_metadata'] = 'ok' if all(source_markers.values()) else 'error'
           checks['source_metadata_present'] = source_markers
-          if checks['source_metadata'] == 'error':
-              missing = [k for k, present in source_markers.items() if not present]
-              errors.append('Missing source metadata values: ' + ', '.join(missing))
+          if checks['source_metadata'] == 'error': errors.append('Missing source metadata values: ' + ', '.join(k for k,v in source_markers.items() if not v))
 
           renderer_markers = ['SOURCE_LABELS','sourceTag','evidenceRow','data-source']
-          missing_renderer_markers = [m for m in renderer_markers if m not in app]
-          checks['source_renderer'] = 'ok' if not missing_renderer_markers else 'error'
-          checks['missing_source_renderer_markers'] = missing_renderer_markers
-          if missing_renderer_markers:
-              errors.append('Source renderer markers missing: ' + ', '.join(missing_renderer_markers))
+          missing_renderer = [m for m in renderer_markers if m not in app]
+          checks['source_renderer'] = 'ok' if not missing_renderer else 'error'
+          checks['missing_source_renderer_markers'] = missing_renderer
+          if missing_renderer: errors.append('Source renderer markers missing: ' + ', '.join(missing_renderer))
 
           filter_markers = ['isTargetDirection', "d==='1'", "d==='하행'", "d==='외선'"]
-          missing_markers = [m for m in filter_markers if m not in app]
-          checks['direction_filter_code'] = 'ok' if not missing_markers else 'error'
-          checks['missing_filter_markers'] = missing_markers
-          if missing_markers:
-              errors.append('Direction filter markers missing: ' + ', '.join(missing_markers))
+          missing_filters = [m for m in filter_markers if m not in app]
+          checks['direction_filter_code'] = 'ok' if not missing_filters else 'error'
+          checks['missing_filter_markers'] = missing_filters
+          if missing_filters: errors.append('Direction filter markers missing: ' + ', '.join(missing_filters))
 
-          structural = ['subway_json','bus_json','last_run_json','source_labels','source_metadata','source_renderer','direction_filter_code','direction_field']
+          structural = ['subway_json','doksan_line1_json','bus_json','last_run_json','source_labels','source_metadata','source_renderer','direction_filter_code','direction_field']
           status = 'ok' if all(checks.get(k) == 'ok' for k in structural) else 'error'
-          verification = {
-              'status': status,
-              'verified_at': datetime.now(kst).isoformat(timespec='seconds'),
-              'build_commit': os.environ.get('BUILD_COMMIT'),
-              'checks': checks,
-              'errors': errors,
-          }
+          verification = {'status':status,'verified_at':datetime.now(kst).isoformat(timespec='seconds'),'build_commit':os.environ.get('BUILD_COMMIT'),'checks':checks,'errors':errors}
           Path('data/verification.json').write_text(json.dumps(verification, ensure_ascii=False, indent=2), encoding='utf-8')
           print(json.dumps(verification, ensure_ascii=False, indent=2))
-          if status != 'ok':
-              raise SystemExit('Deploy payload verification failed')
+          if status != 'ok': raise SystemExit('Deploy payload verification failed')
           PY
 
       - name: Configure Pages
