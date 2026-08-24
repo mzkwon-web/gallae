@@ -208,6 +208,82 @@ jobs:
               raise SystemExit('Seoul bus integration failed: ' + str(bus_payload.get('error')))
           PY
 
+      - name: Verify deploy payload
+        if: always()
+        env:
+          BUILD_COMMIT: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from datetime import datetime, timezone, timedelta
+          from pathlib import Path
+
+          kst = timezone(timedelta(hours=9))
+          app = Path('app.html').read_text(encoding='utf-8')
+
+          def load_json(path):
+              return json.loads(Path(path).read_text(encoding='utf-8'))
+
+          checks = {}
+          errors = []
+
+          try:
+              subway = load_json('data/subway.json')
+              arrivals = subway.get('arrivals') or []
+              directions = [str(x.get('direction') or '').strip() for x in arrivals]
+              checks['subway_json'] = 'ok'
+              checks['direction_field'] = 'ok' if not arrivals or all(directions) else 'error'
+              checks['received_directions'] = sorted(set(d for d in directions if d))
+              checks['target_direction_count'] = sum(d.lower() in {'하행','외선','1','down','outbound'} for d in directions)
+              if checks['direction_field'] == 'error':
+                  errors.append('One or more subway arrivals are missing direction')
+          except Exception as e:
+              checks['subway_json'] = 'error'
+              errors.append(f'subway.json: {e}')
+
+          try:
+              load_json('data/bus.json')
+              checks['bus_json'] = 'ok'
+          except Exception as e:
+              checks['bus_json'] = 'error'
+              errors.append(f'bus.json: {e}')
+
+          try:
+              load_json('data/last-run.json')
+              checks['last_run_json'] = 'ok'
+          except Exception as e:
+              checks['last_run_json'] = 'error'
+              errors.append(f'last-run.json: {e}')
+
+          required_labels = ['API 실시간','사용자 실측','사용자 경험','사용자 제약','PoC 규칙']
+          missing_labels = [label for label in required_labels if label not in app]
+          checks['source_labels'] = 'ok' if not missing_labels else 'error'
+          checks['missing_source_labels'] = missing_labels
+          if missing_labels:
+              errors.append('Missing source labels: ' + ', '.join(missing_labels))
+
+          filter_markers = ['isTargetDirection', "d==='1'", "d==='하행'", "d==='외선'"]
+          missing_markers = [m for m in filter_markers if m not in app]
+          checks['direction_filter_code'] = 'ok' if not missing_markers else 'error'
+          checks['missing_filter_markers'] = missing_markers
+          if missing_markers:
+              errors.append('Direction filter markers missing: ' + ', '.join(missing_markers))
+
+          structural = ['subway_json','bus_json','last_run_json','source_labels','direction_filter_code','direction_field']
+          status = 'ok' if all(checks.get(k) == 'ok' for k in structural) else 'error'
+          verification = {
+              'status': status,
+              'verified_at': datetime.now(kst).isoformat(timespec='seconds'),
+              'build_commit': os.environ.get('BUILD_COMMIT'),
+              'checks': checks,
+              'errors': errors,
+          }
+          Path('data/verification.json').write_text(json.dumps(verification, ensure_ascii=False, indent=2), encoding='utf-8')
+          print(json.dumps(verification, ensure_ascii=False, indent=2))
+          if status != 'ok':
+              raise SystemExit('Deploy payload verification failed')
+          PY
+
       - name: Configure Pages
         if: always()
         uses: actions/configure-pages@v5
