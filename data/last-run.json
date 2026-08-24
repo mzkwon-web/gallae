@@ -1,9 +1,9 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-08-25T07:26:40+09:00",
-  "finished_at": "2026-08-25T07:26:45+09:00",
-  "duration_seconds": 4.97,
+  "started_at": "2026-08-25T07:28:57+09:00",
+  "finished_at": "2026-08-25T07:29:00+09:00",
+  "duration_seconds": 3.14,
   "subway": {
     "status": "ok",
     "arrival_count": 4,
@@ -55,16 +55,16 @@
         "btrainNo": "0418",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[3]번째 전역 (관악)",
-        "arvlMsg3": "관악",
+        "arvlMsg2": "[2]번째 전역 (석수)",
+        "arvlMsg3": "석수",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 07:24:53",
+        "recptnDt": "2026-08-25 07:27:12",
         "statnFid": "1001080144",
         "statnTid": "1001080142",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "01003광운대0"
+        "ordkey": "01002광운대0"
       },
       {
         "subwayId": "1001",
@@ -74,16 +74,16 @@
         "btrainNo": "1904",
         "btrainSttus": "급행",
         "barvlDt": "0",
-        "arvlMsg2": "[12]번째 전역 (수원)",
-        "arvlMsg3": "수원",
+        "arvlMsg2": "[10]번째 전역 (성균관대)",
+        "arvlMsg3": "성균관대",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 07:22:19",
+        "recptnDt": "2026-08-25 07:27:17",
         "statnFid": "1001080144",
         "statnTid": "1001080142",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "01012서울1"
+        "ordkey": "01010서울1"
       },
       {
         "subwayId": "1001",
@@ -93,16 +93,16 @@
         "btrainNo": "0608",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[5]번째 전역 (명학)",
-        "arvlMsg3": "명학",
+        "arvlMsg2": "[4]번째 전역 (안양)",
+        "arvlMsg3": "안양",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 07:24:53",
+        "recptnDt": "2026-08-25 07:27:12",
         "statnFid": "1001080144",
         "statnTid": "1001080142",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "02005광운대0"
+        "ordkey": "02004광운대0"
       },
       {
         "subwayId": "1001",
@@ -112,16 +112,16 @@
         "btrainNo": "1906",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[31]번째 전역 (배방)",
-        "arvlMsg3": "배방",
+        "arvlMsg2": "[30]번째 전역 (탕정)",
+        "arvlMsg3": "탕정",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 07:22:19",
+        "recptnDt": "2026-08-25 07:27:17",
         "statnFid": "1001080144",
         "statnTid": "1001080142",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "02031청량리0"
+        "ordkey": "02030청량리0"
       },
       {
         "subwayId": "1001",
@@ -131,16 +131,16 @@
         "btrainNo": "7005",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "전역 도착",
-        "arvlMsg3": "가산디지털단지",
-        "arvlCd": "5",
+        "arvlMsg2": "독산 진입",
+        "arvlMsg3": "독산",
+        "arvlCd": "0",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 07:24:38",
+        "recptnDt": "2026-08-25 07:27:46",
         "statnFid": "1001080142",
         "statnTid": "1001080144",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "11001광명0"
+        "ordkey": "11000광명0"
       },
       {
         "subwayId": "1001",
@@ -150,16 +150,16 @@
         "btrainNo": "1905",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[8]번째 전역 (용산)",
-        "arvlMsg3": "용산",
+        "arvlMsg2": "[7]번째 전역 (노량진)",
+        "arvlMsg3": "노량진",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 07:24:17",
+        "recptnDt": "2026-08-25 07:27:32",
         "statnFid": "1001080142",
         "statnTid": "1001080144",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "11008신창0"
+        "ordkey": "11007신창0"
       },
       {
         "subwayId": "1001",
@@ -169,16 +169,16 @@
         "btrainNo": "0417",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[2]번째 전역 (구로)",
-        "arvlMsg3": "구로",
-        "arvlCd": "99",
+        "arvlMsg2": "전역 진입",
+        "arvlMsg3": "가산디지털단지",
+        "arvlCd": "4",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 07:24:38",
+        "recptnDt": "2026-08-25 07:27:46",
         "statnFid": "1001080142",
         "statnTid": "1001080144",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "12002서동탄0"
+        "ordkey": "12001서동탄0"
       }
     ]
   },
