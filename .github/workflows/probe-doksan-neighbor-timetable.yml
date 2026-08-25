@@ -20,6 +20,7 @@ jobs:
         run: |
           python - <<'PY'
           import json, urllib.request
+          from collections import Counter
           from pathlib import Path
           from openpyxl import load_workbook
 
@@ -28,14 +29,32 @@ jobs:
           with urllib.request.urlopen(req,timeout=40) as r:
               Path('line1.xlsx').write_bytes(r.read())
           wb=load_workbook('line1.xlsx',data_only=False,read_only=True)
-          out={'status':'ok','source':'korail_official_timetable','sheets':{}}
+          targets={'수원','성균관대','의왕','당정','군포','금정','명학','안양','관악','석수','금천구','독산','가산디지털단지','구로'}
+          out={'status':'ok','source':'korail_official_timetable','sheets':{},'dominant_minutes_to_doksan':{}}
+
+          def as_clock(v):
+              if v is None: return None
+              if hasattr(v,'strftime'):
+                  try:return v.strftime('%H:%M:%S')
+                  except Exception:return None
+              s=str(v).strip()
+              return s if len(s)>=7 and ':' in s else None
+
+          def sec(v):
+              try:
+                  h,m,s=[int(x) for x in v.split(':')]
+                  return h*3600+m*60+s
+              except Exception:return None
+
+          aggregate={k:[] for k in targets if k!='독산'}
           for sheet in ['경부장항_평일_상','서동탄-의정부_평일_상']:
               if sheet not in wb.sheetnames: continue
               ws=wb[sheet]
-              rows=[]
+              rows={}
+              raw_rows=[]
               for row in ws.iter_rows():
                   label=str(row[0].value or '').strip()
-                  if label in {'석수','금천구청','독산','가산디지털단지','구로'} or ('금천' in label):
+                  if label in targets:
                       vals=[]
                       for c in row:
                           v=c.value
@@ -44,11 +63,37 @@ jobs:
                               except Exception:v=str(v)
                           elif v is not None:v=str(v)
                           vals.append(v)
-                      rows.append({'row':row[0].row,'label':label,'values':vals})
-              out['sheets'][sheet]=rows
+                      rows[label]=vals
+                      raw_rows.append({'row':row[0].row,'label':label,'values':vals})
+              out['sheets'][sheet]=raw_rows
+              doksan=rows.get('독산') or []
+              for station,vals in rows.items():
+                  if station=='독산': continue
+                  deltas=[]
+                  for i in range(min(len(vals),len(doksan))):
+                      a,b=as_clock(vals[i]),as_clock(doksan[i])
+                      if not a or not b: continue
+                      sa,sb=sec(a),sec(b)
+                      if sa is None or sb is None: continue
+                      d=sb-sa
+                      if d<0:d+=86400
+                      if 0<d<=7200:
+                          deltas.append(d)
+                          aggregate.setdefault(station,[]).append(d)
+                  if deltas:
+                      mode,count=Counter(deltas).most_common(1)[0]
+                      out.setdefault('sheet_dominant_minutes',{}).setdefault(sheet,{})[station]={
+                          'minutes':mode/60,'count':count,'observations':len(deltas)
+                      }
+          for station,deltas in aggregate.items():
+              if not deltas: continue
+              mode,count=Counter(deltas).most_common(1)[0]
+              out['dominant_minutes_to_doksan'][station]={
+                  'minutes':mode/60,'count':count,'observations':len(deltas)
+              }
           Path('probe-output').mkdir(exist_ok=True)
           Path('probe-output/doksan-neighbor-timetable.json').write_text(json.dumps(out,ensure_ascii=False,indent=2),encoding='utf-8')
-          print(json.dumps(out,ensure_ascii=False,indent=2))
+          print(json.dumps({'status':'ok','dominant_minutes_to_doksan':out['dominant_minutes_to_doksan']},ensure_ascii=False,indent=2))
           PY
       - name: Upload artifact
         uses: actions/upload-artifact@v4
