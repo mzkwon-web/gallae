@@ -1,0 +1,64 @@
+name: Probe Seoul bus 18514 identifiers
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/probe-seoul-bus-18514.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch raw station arrivals with identifiers
+        env:
+          DATA_GO_KR_BUS_API_KEY: ${{ secrets.DATA_GO_KR_BUS_API_KEY }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          import xml.etree.ElementTree as ET
+          from datetime import datetime, timezone, timedelta
+          from pathlib import Path
+
+          key=(os.environ.get('DATA_GO_KR_BUS_API_KEY') or '').strip()
+          if not key: raise SystemExit('DATA_GO_KR_BUS_API_KEY is missing')
+          base='http://ws.bus.go.kr/api/rest/stationinfo/getStationByUid'
+          query=urllib.parse.urlencode({'serviceKey':urllib.parse.unquote(key),'arsId':'18514'},safe='%')
+          req=urllib.request.Request(base+'?'+query,headers={'User-Agent':'Mozilla/5.0 gallae-bus-probe/0.1'})
+          with urllib.request.urlopen(req,timeout=30) as response:
+              raw_bytes=response.read()
+          root=ET.fromstring(raw_bytes)
+          header_cd=(root.findtext('.//headerCd') or '').strip()
+          header_msg=(root.findtext('.//headerMsg') or '').strip()
+          rows=[]
+          fields=['arsId','stId','stNm','busRouteId','rtNm','busRouteAbrv','busRouteNm','arrmsg1','traTime1','sectOrd1','arrmsg2','traTime2','sectOrd2','stationNm1','stationNm2']
+          for item in root.findall('.//itemList'):
+              row={}
+              for name in fields:
+                  value=item.findtext(name)
+                  row[name]=value.strip() if isinstance(value,str) else value
+              rows.append(row)
+          payload={
+              'status':'ok' if header_cd in ('0','00','') else 'error',
+              'headerCd':header_cd,'headerMsg':header_msg,'requested_arsId':'18514',
+              'updated_at':datetime.now(timezone(timedelta(hours=9))).isoformat(timespec='seconds'),
+              'row_count':len(rows),'rows':rows,
+              'routes_320':[r for r in rows if '320' in str(r.get('rtNm') or r.get('busRouteAbrv') or r.get('busRouteNm') or '')]
+          }
+          Path('probe-output').mkdir(exist_ok=True)
+          Path('probe-output/seoul-bus-18514.json').write_text(json.dumps(payload,ensure_ascii=False,indent=2),encoding='utf-8')
+          print(json.dumps({'status':payload['status'],'row_count':len(rows),'routes_320':payload['routes_320']},ensure_ascii=False,indent=2))
+          if payload['status']!='ok': raise SystemExit(f'SEOUL {header_cd}: {header_msg}')
+          PY
+      - name: Upload probe artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seoul-bus-18514-probe
+          path: probe-output/
+          if-no-files-found: error
