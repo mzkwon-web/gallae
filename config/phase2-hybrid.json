@@ -3,8 +3,7 @@
   "mode": "hybrid_rolling_eta",
   "data_priority": [
     "realtime",
-    "schedule",
-    "plan",
+    "schedule/plan",
     "estimate"
   ],
   "targets": {
