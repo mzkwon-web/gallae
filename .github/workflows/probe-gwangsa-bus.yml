@@ -22,7 +22,7 @@ jobs:
           GYEONGGI_BUS_API_KEY: ${{ secrets.DATA_GO_KR_BUS_API_KEY }}
         run: |
           python - <<'PY'
-          import json, os, urllib.parse, urllib.request
+          import json, os, time, urllib.error, urllib.parse, urllib.request
           from datetime import datetime, timezone, timedelta
           from pathlib import Path
 
@@ -39,10 +39,11 @@ jobs:
               'station':None,
               'arrivals':[],
               'candidate_count':0,
+              'request_attempts':{},
               'error':None,
           }
 
-          def fetch_json(base, params):
+          def fetch_json(label, base, params, attempts=3, timeout=20):
               key = (os.environ.get('GYEONGGI_BUS_API_KEY') or '').strip()
               if not key:
                   raise RuntimeError('GYEONGGI_BUS_API_KEY is missing')
@@ -50,8 +51,17 @@ jobs:
               params.update({'format':'json','serviceKey':urllib.parse.unquote(key)})
               query = urllib.parse.urlencode(params, safe='%')
               req = urllib.request.Request(base + '?' + query, headers={'User-Agent':'Mozilla/5.0 gallae-poc/1.0'})
-              with urllib.request.urlopen(req, timeout=25) as response:
-                  return json.loads(response.read().decode('utf-8', errors='replace'))
+              errors = []
+              for attempt in range(1, attempts + 1):
+                  out['request_attempts'][label] = attempt
+                  try:
+                      with urllib.request.urlopen(req, timeout=timeout) as response:
+                          return json.loads(response.read().decode('utf-8', errors='replace'))
+                  except (TimeoutError, urllib.error.URLError) as exc:
+                      errors.append(f'attempt {attempt}: {exc}')
+                      if attempt < attempts:
+                          time.sleep(attempt * 2)
+              raise RuntimeError(f'{label} failed after {attempts} attempts: ' + ' | '.join(errors))
 
           def response_parts(raw):
               response = raw.get('response', {}) if isinstance(raw, dict) else {}
@@ -72,6 +82,7 @@ jobs:
 
           try:
               station_raw = fetch_json(
+                  'station_lookup',
                   'https://apis.data.go.kr/6410000/busstationservice/v2/getBusStationListv2',
                   {'keyword':'14057'}
               )
@@ -94,6 +105,7 @@ jobs:
               }
 
               arrival_raw = fetch_json(
+                  'arrival_lookup',
                   'https://apis.data.go.kr/6410000/busarrivalservice/v2/getBusArrivalListv2',
                   {'stationId':station_id}
               )
@@ -154,7 +166,8 @@ jobs:
               'status':'ok',
               'station':payload.get('station'),
               'arrival_count':len(payload.get('arrivals') or []),
-              'candidate_count':payload.get('candidate_count')
+              'candidate_count':payload.get('candidate_count'),
+              'request_attempts':payload.get('request_attempts')
           }, ensure_ascii=False))
           PY
 
