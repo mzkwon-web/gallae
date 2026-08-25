@@ -2,16 +2,16 @@
   "status": "ok",
   "station": "가산디지털단지",
   "line": "7호선",
-  "updated_at": "2026-08-25T11:24:04+09:00",
+  "updated_at": "2026-08-25T12:12:26+09:00",
   "arrivals": [
     {
       "destination": "도봉산",
       "direction": "상행",
       "train_line": "도봉산행 - 남구로방면",
-      "arrival_message": "전역 도착",
+      "arrival_message": "전역 출발",
       "current_location": "철산",
-      "train_no": "7146",
-      "received_at": "2026-08-25 11:23:23"
+      "train_no": "7162",
+      "received_at": "2026-08-25 12:11:48"
     },
     {
       "destination": "장암",
@@ -19,8 +19,8 @@
       "train_line": "장암행 - 남구로방면",
       "arrival_message": "7분 후 (천왕)",
       "current_location": "천왕",
-      "train_no": "7148",
-      "received_at": "2026-08-25 11:23:23"
+      "train_no": "7164",
+      "received_at": "2026-08-25 12:11:48"
     },
     {
       "destination": "온수",
@@ -28,8 +28,8 @@
       "train_line": "온수행 - 철산방면",
       "arrival_message": "4분 후 (대림)",
       "current_location": "대림",
-      "train_no": "7153",
-      "received_at": "2026-08-25 11:23:33"
+      "train_no": "7169",
+      "received_at": "2026-08-25 12:11:58"
     },
     {
       "destination": "석남",
@@ -37,8 +37,8 @@
       "train_line": "석남행 - 철산방면",
       "arrival_message": "12분 후 (장승배기)",
       "current_location": "장승배기",
-      "train_no": "7155",
-      "received_at": "2026-08-25 11:23:33"
+      "train_no": "7171",
+      "received_at": "2026-08-25 12:11:58"
     }
   ]
 }
