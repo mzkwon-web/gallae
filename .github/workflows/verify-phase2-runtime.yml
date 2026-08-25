@@ -78,6 +78,17 @@ jobs:
           if(p.final_access_source!=='measured') errors.push('final access source mismatch');
           if(p.planned_departure_status!=='derived_from_schedule_plan') errors.push('planned departure should be derived from schedule plan');
           if(!p.planned_departure_at || new Date(p.planned_departure_at).toLocaleTimeString('en-GB',{timeZone:'Asia/Seoul',hour12:false})!=='12:57:30') errors.push(`unexpected planned departure ${p.planned_departure_at}`);
+
+          const ov=p.operational_validation||{};
+          const ovContract=p.operational_validation_contract||{};
+          const validOvStates=new Set(['before','within','after','unavailable']);
+          if(!validOvStates.has(ov.status)) errors.push(`invalid operational validation status ${ov.status}`);
+          if(ovContract.status!=='ok' || (ovContract.errors||[]).length) errors.push('operational validation contract failed');
+          if(typeof ov.decision_usable!=='boolean') errors.push('decision_usable must be boolean');
+          if((ov.status==='within')!==ov.decision_usable) errors.push(`decision_usable mismatch for ${ov.status}`);
+          if(!Array.isArray(ov.evidence) || !ov.evidence.some(x=>x&&x.source==='rule')) errors.push('operational validation rule evidence missing');
+          if(['before','after','unavailable'].includes(ov.status) && !ov.evidence.some(x=>x&&x.source==='constraint')) errors.push('operational validation constraint evidence missing');
+
           if(p.status==='ok'){
             if(!p.usable_candidate_count) errors.push('ok without usable candidate');
             for(const item of p.candidates.filter(x=>x.result&&x.result.status==='ok')){
@@ -117,6 +128,11 @@ jobs:
           if(b&&b.deadline_state!=='late') errors.push('delayed scenario should be late after measured final access');
           if(b&&b.margin_state!=='urgent') errors.push('delayed scenario should be urgent margin');
 
+          const withinEarly=onPlan.operational_validation||{};
+          const withinDelayed=delayed.operational_validation||{};
+          if(withinEarly.status!=='within' || withinEarly.decision_usable!==true) errors.push('early synthetic snapshot should be decision-usable within window');
+          if(withinDelayed.status!=='within' || withinDelayed.decision_usable!==true) errors.push('delayed synthetic snapshot should be decision-usable within window');
+
           const verification={
             status:errors.length?'error':'ok',
             errors,
@@ -125,6 +141,7 @@ jobs:
             usable_candidate_count:p.usable_candidate_count,
             planned_departure_at:p.planned_departure_at,
             final_access_minutes:p.final_access_minutes,
+            operational_validation:{status:ov.status,decision_usable:ov.decision_usable,contract_status:ovContract.status},
             regression:{
               early:a?{plan_deviation_minutes:a.plan_deviation_minutes,final_eta:a.final_eta,deadline_state:a.deadline_state,margin_state:a.margin_state,legs:a.legs.map(x=>({departure_at:x.departure_at,arrival_at:x.arrival_at}))}:null,
               delayed:b?{plan_deviation_minutes:b.plan_deviation_minutes,final_eta:b.final_eta,deadline_state:b.deadline_state,margin_state:b.margin_state,legs:b.legs.map(x=>({departure_at:x.departure_at,arrival_at:x.arrival_at}))}:null
