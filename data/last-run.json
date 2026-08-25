@@ -1,9 +1,9 @@
 {
   "status": "ok",
-  "overall_status": "ok",
-  "started_at": "2026-08-25T23:18:55+09:00",
-  "finished_at": "2026-08-25T23:19:00+09:00",
-  "duration_seconds": 4.83,
+  "overall_status": "degraded",
+  "started_at": "2026-08-25T23:20:30+09:00",
+  "finished_at": "2026-08-25T23:21:26+09:00",
+  "duration_seconds": 55.57,
   "subway": {
     "status": "ok",
     "arrival_count": 4,
@@ -59,7 +59,7 @@
         "arvlMsg3": "석수",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 23:18:22",
+        "recptnDt": "2026-08-25 23:18:52",
         "statnFid": "1001080144",
         "statnTid": "1001080142",
         "statnId": "1001080143",
@@ -74,16 +74,16 @@
         "btrainNo": "0510",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[9]번째 전역 (의왕)",
-        "arvlMsg3": "의왕",
+        "arvlMsg2": "[8]번째 전역 (당정)",
+        "arvlMsg3": "당정",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 23:18:22",
+        "recptnDt": "2026-08-25 23:18:52",
         "statnFid": "1001080144",
         "statnTid": "1001080142",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "02009청량리0"
+        "ordkey": "02008청량리0"
       },
       {
         "subwayId": "1001",
@@ -97,7 +97,7 @@
         "arvlMsg3": "구로",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 23:18:11",
+        "recptnDt": "2026-08-25 23:19:05",
         "statnFid": "1001080142",
         "statnTid": "1001080144",
         "statnId": "1001080143",
@@ -112,16 +112,16 @@
         "btrainNo": "0817",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[6]번째 전역 (대방)",
-        "arvlMsg3": "대방",
+        "arvlMsg2": "[5]번째 전역 (신길)",
+        "arvlMsg3": "신길",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 23:18:11",
+        "recptnDt": "2026-08-25 23:19:05",
         "statnFid": "1001080142",
         "statnTid": "1001080144",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "12006구로0"
+        "ordkey": "12005구로0"
       }
     ]
   },
@@ -140,11 +140,10 @@
       "error": null
     },
     "gyeonggi": {
-      "status": "ok",
+      "status": "error",
       "source": "gyeonggi_bus_api",
       "test_station_id": "200000078",
-      "error": null,
-      "arrival_count": 15
+      "error": "<urlopen error timed out>"
     }
   }
 }
