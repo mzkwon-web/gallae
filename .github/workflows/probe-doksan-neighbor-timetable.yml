@@ -1,0 +1,57 @@
+name: Probe official timetable rows around Doksan
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/probe-doksan-neighbor-timetable.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install workbook reader
+        run: python -m pip install --disable-pip-version-check openpyxl
+      - name: Inspect official Line 1 rows around Doksan
+        run: |
+          python - <<'PY'
+          import json, urllib.request
+          from pathlib import Path
+          from openpyxl import load_workbook
+
+          url='https://www.korail.com/file/cubedata/COMMON/jfile/202602/23/2026022319c8818dfa4360.xlsx'
+          req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 gallae-poc/1.0'})
+          with urllib.request.urlopen(req,timeout=40) as r:
+              Path('line1.xlsx').write_bytes(r.read())
+          wb=load_workbook('line1.xlsx',data_only=False,read_only=True)
+          out={'status':'ok','source':'korail_official_timetable','sheets':{}}
+          for sheet in ['경부장항_평일_상','서동탄-의정부_평일_상']:
+              if sheet not in wb.sheetnames: continue
+              ws=wb[sheet]
+              rows=[]
+              for row in ws.iter_rows():
+                  label=str(row[0].value or '').strip()
+                  if label in {'석수','금천구청','독산','가산디지털단지','구로'} or ('금천' in label):
+                      vals=[]
+                      for c in row:
+                          v=c.value
+                          if hasattr(v,'strftime'):
+                              try:v=v.strftime('%H:%M:%S')
+                              except Exception:v=str(v)
+                          elif v is not None:v=str(v)
+                          vals.append(v)
+                      rows.append({'row':row[0].row,'label':label,'values':vals})
+              out['sheets'][sheet]=rows
+          Path('probe-output').mkdir(exist_ok=True)
+          Path('probe-output/doksan-neighbor-timetable.json').write_text(json.dumps(out,ensure_ascii=False,indent=2),encoding='utf-8')
+          print(json.dumps(out,ensure_ascii=False,indent=2))
+          PY
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: doksan-neighbor-timetable-probe
+          path: probe-output/doksan-neighbor-timetable.json
