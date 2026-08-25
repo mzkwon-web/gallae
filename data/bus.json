@@ -5,7 +5,7 @@
   "official_stop_name": "금천현대아파트.청소년문화의집",
   "ars_id": "18514",
   "expected_st_id": "117900109",
-  "updated_at": "2026-08-26T02:49:59+09:00",
+  "updated_at": "2026-08-26T04:19:50+09:00",
   "arrivals": [
     {
       "ars_id": "18514",
@@ -49,8 +49,8 @@
       "bus_route_id": "117900005",
       "route": "금천08",
       "first_message": "운행종료",
-      "first_seconds": "1633",
-      "first_stops": "2",
+      "first_seconds": "0",
+      "first_stops": "0",
       "second_message": "운행종료",
       "destination": "금천현대아파트.청소년문화의집",
       "source": "seoul-data-go-kr"
