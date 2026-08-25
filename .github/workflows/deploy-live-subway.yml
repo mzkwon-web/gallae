@@ -207,6 +207,11 @@ jobs:
               raise SystemExit('Seoul bus integration failed: ' + str(bus_payload.get('error')))
           PY
 
+      - name: Build phase 2 hybrid runtime
+        if: always()
+        run: |
+          node scripts/build-phase2-runtime.js data/doksan-line1.json data/phase2-runtime.json
+
       - name: Verify deploy payload
         if: always()
         env:
@@ -243,6 +248,34 @@ jobs:
               if checks['doksan_line1_json'] == 'error': errors.append('doksan-line1.json: ' + str(doksan.get('error')))
           except Exception as e:
               checks['doksan_line1_json'] = 'error'; errors.append(f'doksan-line1.json: {e}')
+
+          try:
+              runtime = load_json('data/phase2-runtime.json')
+              runtime_status = runtime.get('status')
+              priority = runtime.get('source_priority') or []
+              checks['phase2_runtime_json'] = 'ok' if runtime_status in {'ok','unavailable'} else 'error'
+              checks['phase2_runtime_status'] = runtime_status
+              checks['phase2_source_priority'] = priority
+              checks['phase2_target_clock'] = runtime.get('target_clock')
+              checks['phase2_deadline_clock'] = runtime.get('deadline_clock')
+              checks['phase2_planned_departure_at'] = runtime.get('planned_departure_at')
+              if checks['phase2_runtime_json'] == 'error':
+                  errors.append('phase2-runtime.json invalid status: ' + str(runtime_status))
+              if priority[:3] != ['realtime','schedule/plan','estimate']:
+                  checks['phase2_source_priority_order'] = 'error'
+                  errors.append('phase2 runtime source priority is not realtime -> schedule/plan -> estimate')
+              else:
+                  checks['phase2_source_priority_order'] = 'ok'
+              if runtime.get('target_clock') != '13:50' or runtime.get('deadline_clock') != '14:00':
+                  checks['phase2_targets'] = 'error'
+                  errors.append('phase2 runtime target/deadline mismatch')
+              else:
+                  checks['phase2_targets'] = 'ok'
+          except Exception as e:
+              checks['phase2_runtime_json'] = 'error'
+              checks['phase2_source_priority_order'] = 'error'
+              checks['phase2_targets'] = 'error'
+              errors.append(f'phase2-runtime.json: {e}')
 
           for path, key in [('data/bus.json','bus_json'),('data/last-run.json','last_run_json')]:
               try: load_json(path); checks[key] = 'ok'
@@ -282,7 +315,7 @@ jobs:
           checks['missing_filter_markers'] = missing_filters
           if missing_filters: errors.append('Direction filter markers missing: ' + ', '.join(missing_filters))
 
-          structural = ['subway_json','doksan_line1_json','bus_json','last_run_json','source_registry','source_labels','source_metadata','source_renderer','direction_filter_code','direction_field']
+          structural = ['subway_json','doksan_line1_json','phase2_runtime_json','phase2_source_priority_order','phase2_targets','bus_json','last_run_json','source_registry','source_labels','source_metadata','source_renderer','direction_filter_code','direction_field']
           status = 'ok' if all(checks.get(k) == 'ok' for k in structural) else 'error'
           verification = {'status':status,'verified_at':datetime.now(kst).isoformat(timespec='seconds'),'build_commit':os.environ.get('BUILD_COMMIT'),'checks':checks,'errors':errors}
           Path('data/verification.json').write_text(json.dumps(verification, ensure_ascii=False, indent=2), encoding='utf-8')
