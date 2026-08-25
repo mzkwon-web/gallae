@@ -25,7 +25,10 @@ function classifyValidationWindow(snapshotAt, plannedDepartureAt, config, runtim
       delta_from_planned_minutes:null,
       window_start_at:null,
       window_end_at:null,
-      evidence:[{source:'constraint',text:'계획 출발시각 또는 runtime validation window 근거가 없어 운영 검증창을 판정하지 않음'}]
+      evidence:[
+        {source:'rule',text:'실제 출발 판단용 plan_deviation은 계획 독산 탑승시각과 runtime validation window를 모두 확보한 경우에만 사용'},
+        {source:'constraint',text:'계획 출발시각 또는 runtime validation window 근거가 없어 운영 검증창을 판정하지 않음'}
+      ]
     };
   }
   const delta = (snapshotMs - plannedMs) / 60000;
