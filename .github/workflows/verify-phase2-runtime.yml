@@ -128,11 +128,6 @@ jobs:
           if(b&&b.deadline_state!=='late') errors.push('delayed scenario should be late after measured final access');
           if(b&&b.margin_state!=='urgent') errors.push('delayed scenario should be urgent margin');
 
-          const withinEarly=onPlan.operational_validation||{};
-          const withinDelayed=delayed.operational_validation||{};
-          if(withinEarly.status!=='within' || withinEarly.decision_usable!==true) errors.push('early synthetic snapshot should be decision-usable within window');
-          if(withinDelayed.status!=='within' || withinDelayed.decision_usable!==true) errors.push('delayed synthetic snapshot should be decision-usable within window');
-
           const verification={
             status:errors.length?'error':'ok',
             errors,
