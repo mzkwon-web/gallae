@@ -2,43 +2,43 @@
   "status": "ok",
   "station": "가산디지털단지",
   "line": "7호선",
-  "updated_at": "2026-08-26T05:03:42+09:00",
+  "updated_at": "2026-08-26T06:02:23+09:00",
   "arrivals": [
     {
       "destination": "장암",
       "direction": "상행",
       "train_line": "장암행 - 남구로방면",
-      "arrival_message": "36분 후 (온수)",
-      "current_location": "온수",
-      "train_no": "7012",
-      "received_at": "2026-08-26 05:03:15"
+      "arrival_message": "가산디지털단지 도착",
+      "current_location": "가산디지털단지",
+      "train_no": "7016",
+      "received_at": "2026-08-26 06:01:37"
     },
     {
-      "destination": "장암",
+      "destination": "도봉산",
       "direction": "상행",
-      "train_line": "장암행 - 남구로방면",
-      "arrival_message": "46분 후 (온수)",
-      "current_location": "온수",
-      "train_no": "7014",
-      "received_at": "2026-08-26 05:03:15"
+      "train_line": "도봉산행 - 남구로방면",
+      "arrival_message": "7분 후 (천왕)",
+      "current_location": "천왕",
+      "train_no": "7018",
+      "received_at": "2026-08-26 06:01:37"
     },
     {
       "destination": "석남",
       "direction": "하행",
       "train_line": "석남행 - 철산방면",
-      "arrival_message": "33분 후 (신풍)",
-      "current_location": "신풍",
-      "train_no": "7003",
-      "received_at": "2026-08-26 05:03:25"
+      "arrival_message": "4분 후 (대림)",
+      "current_location": "대림",
+      "train_no": "7009",
+      "received_at": "2026-08-26 06:01:47"
     },
     {
       "destination": "석남",
       "direction": "하행",
       "train_line": "석남행 - 철산방면",
-      "arrival_message": "49분 후 (내방)",
-      "current_location": "내방",
-      "train_no": "7005",
-      "received_at": "2026-08-26 05:03:25"
+      "arrival_message": "16분 후 (숭실대입구(살피재))",
+      "current_location": "숭실대입구(살피재)",
+      "train_no": "7011",
+      "received_at": "2026-08-26 06:01:47"
     }
   ]
 }
