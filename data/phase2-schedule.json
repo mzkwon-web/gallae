@@ -1,0 +1,79 @@
+{
+  "version": "phase2-v0.1",
+  "service_day": "weekday",
+  "provenance": {
+    "line1": {
+      "provider": "KORAIL",
+      "title": "1호선(경부장항선, 경인경원선, 광명셔틀) 전동열차 평일 시각표(2026.2.28.부터)",
+      "file_id": "jfile/202602/23/2026022319c8818dfa4360.xlsx",
+      "effective_from": "2026-02-28"
+    },
+    "seohae": {
+      "provider": "KORAIL",
+      "title": "서해선 전동열차 시각표(2026.4.20.부터)",
+      "file_id": "jfile/202604/16/2026041619d9411e417190.xlsx",
+      "effective_from": "2026-04-20"
+    }
+  },
+  "data_priority": ["realtime", "schedule", "plan", "estimate"],
+  "doksan_position_profile": {
+    "service_type": "일반",
+    "minutes_to_doksan_by_station": {
+      "명학": 14,
+      "안양": 11,
+      "관악": 8,
+      "석수": 5.5
+    },
+    "doksan_to_guro_minutes": 7,
+    "source_basis": "official_schedule_dominant_interval"
+  },
+  "guro_to_sosa": [
+    {"departure":"10:30:30","arrival":"10:45:30","data_source":"schedule"},
+    {"departure":"10:52:00","arrival":"11:07:00","data_source":"schedule"},
+    {"departure":"11:01:00","arrival":"11:16:00","data_source":"schedule"},
+    {"departure":"11:14:30","arrival":"11:29:30","data_source":"schedule"},
+    {"departure":"11:48:00","arrival":"12:03:00","data_source":"schedule"},
+    {"departure":"11:53:00","arrival":"12:08:30","data_source":"schedule"},
+    {"departure":"12:03:30","arrival":"12:18:30","data_source":"schedule"},
+    {"departure":"12:11:30","arrival":"12:26:30","data_source":"schedule"},
+    {"departure":"12:24:00","arrival":"12:39:00","data_source":"schedule"},
+    {"departure":"12:41:30","arrival":"12:56:30","data_source":"schedule"},
+    {"departure":"12:55:00","arrival":"13:10:00","data_source":"schedule"},
+    {"departure":"13:04:30","arrival":"13:19:30","data_source":"schedule"},
+    {"departure":"13:13:30","arrival":"13:28:30","data_source":"schedule"},
+    {"departure":"13:23:00","arrival":"13:38:00","data_source":"schedule"},
+    {"departure":"13:33:30","arrival":"13:48:30","data_source":"schedule"},
+    {"departure":"13:45:30","arrival":"14:00:30","data_source":"schedule"},
+    {"departure":"13:54:00","arrival":"14:09:00","data_source":"schedule"},
+    {"departure":"13:59:30","arrival":"14:14:30","data_source":"schedule"},
+    {"departure":"14:08:30","arrival":"14:23:30","data_source":"schedule"},
+    {"departure":"14:17:00","arrival":"14:32:00","data_source":"schedule"},
+    {"departure":"14:30:30","arrival":"14:45:30","data_source":"schedule"},
+    {"departure":"14:47:30","arrival":"15:02:30","data_source":"schedule"},
+    {"departure":"14:56:00","arrival":"15:11:00","data_source":"schedule"},
+    {"departure":"15:05:30","arrival":"15:20:30","data_source":"schedule"},
+    {"departure":"15:21:00","arrival":"15:36:00","data_source":"schedule"}
+  ],
+  "sosa_to_sincheon": [
+    {"departure":"10:43:30","arrival":"10:52:30","data_source":"schedule"},
+    {"departure":"11:00:30","arrival":"11:09:30","data_source":"schedule"},
+    {"departure":"11:13:30","arrival":"11:22:30","data_source":"schedule"},
+    {"departure":"11:29:30","arrival":"11:38:30","data_source":"schedule"},
+    {"departure":"11:45:30","arrival":"11:54:30","data_source":"schedule"},
+    {"departure":"12:00:30","arrival":"12:09:30","data_source":"schedule"},
+    {"departure":"12:13:30","arrival":"12:22:30","data_source":"schedule"},
+    {"departure":"12:28:30","arrival":"12:37:30","data_source":"schedule"},
+    {"departure":"12:43:30","arrival":"12:52:30","data_source":"schedule"},
+    {"departure":"12:57:30","arrival":"13:06:30","data_source":"schedule"},
+    {"departure":"13:11:30","arrival":"13:20:30","data_source":"schedule"},
+    {"departure":"13:27:30","arrival":"13:36:30","data_source":"schedule"},
+    {"departure":"13:42:30","arrival":"13:51:30","data_source":"schedule"},
+    {"departure":"13:58:30","arrival":"14:07:30","data_source":"schedule"},
+    {"departure":"14:14:30","arrival":"14:23:30","data_source":"schedule"},
+    {"departure":"14:27:30","arrival":"14:36:30","data_source":"schedule"},
+    {"departure":"14:42:30","arrival":"14:51:30","data_source":"schedule"},
+    {"departure":"14:54:30","arrival":"15:03:30","data_source":"schedule"},
+    {"departure":"15:12:30","arrival":"15:21:30","data_source":"schedule"},
+    {"departure":"15:25:30","arrival":"15:34:30","data_source":"schedule"}
+  ]
+}
