@@ -74,11 +74,15 @@ jobs:
           if(p.source_priority.join('>')!=='realtime>schedule>plan>estimate') errors.push('source priority mismatch');
           if(p.target_clock!=='13:50') errors.push('target mismatch');
           if(p.deadline_clock!=='14:00') errors.push('deadline mismatch');
+          if(p.final_access_minutes!==10) errors.push(`unexpected final access ${p.final_access_minutes}`);
+          if(p.final_access_source!=='measured') errors.push('final access source mismatch');
+          if(p.planned_departure_status!=='derived_from_schedule_plan') errors.push('planned departure should be derived from schedule plan');
+          if(!p.planned_departure_at || new Date(p.planned_departure_at).toLocaleTimeString('en-GB',{timeZone:'Asia/Seoul',hour12:false})!=='12:57:30') errors.push(`unexpected planned departure ${p.planned_departure_at}`);
           if(p.status==='ok'){
             if(!p.usable_candidate_count) errors.push('ok without usable candidate');
             for(const item of p.candidates.filter(x=>x.result&&x.result.status==='ok')){
-              if(item.result.eta_scope!=='through_sincheon') errors.push('unexpected ETA scope');
-              if(item.result.plan_deviation_status!=='planned_departure_missing') errors.push('plan deviation should stay unavailable without plan evidence');
+              if(item.result.eta_scope!=='final_destination') errors.push('unexpected ETA scope');
+              if(!['available','derived_from_schedule_plan'].includes(item.result.plan_deviation_status)) errors.push('plan deviation should be available from derived plan');
               if(!item.result.legs || item.result.legs.length!==2) errors.push('rolling legs missing');
               if((item.result.legs||[]).some(x=>x.data_source!=='schedule')) errors.push('post-Guro leg did not use schedule fallback');
             }
@@ -109,8 +113,9 @@ jobs:
           if(a&&a.legs[1].departure_at!=='2026-08-25T13:27:30+09:00') errors.push('early scenario wrong Sosa-Sincheon connection');
           if(b&&b.legs[1].departure_at!=='2026-08-25T13:42:30+09:00') errors.push('delayed scenario did not roll to next Sosa-Sincheon connection');
           if(a&&a.deadline_state!=='target_met') errors.push('early scenario should meet target');
-          if(b&&b.deadline_state!=='deadline_met') errors.push('delayed scenario should miss target but meet deadline');
-          if(b&&b.margin_state!=='caution') errors.push('delayed scenario should be caution margin');
+          if(a&&a.margin_state!=='sufficient') errors.push('early scenario should have sufficient margin');
+          if(b&&b.deadline_state!=='late') errors.push('delayed scenario should be late after measured final access');
+          if(b&&b.margin_state!=='urgent') errors.push('delayed scenario should be urgent margin');
 
           const verification={
             status:errors.length?'error':'ok',
@@ -118,6 +123,8 @@ jobs:
             runtime_status:p.status,
             realtime_candidate_count:p.realtime_candidate_count,
             usable_candidate_count:p.usable_candidate_count,
+            planned_departure_at:p.planned_departure_at,
+            final_access_minutes:p.final_access_minutes,
             regression:{
               early:a?{plan_deviation_minutes:a.plan_deviation_minutes,final_eta:a.final_eta,deadline_state:a.deadline_state,margin_state:a.margin_state,legs:a.legs.map(x=>({departure_at:x.departure_at,arrival_at:x.arrival_at}))}:null,
               delayed:b?{plan_deviation_minutes:b.plan_deviation_minutes,final_eta:b.final_eta,deadline_state:b.deadline_state,margin_state:b.margin_state,legs:b.legs.map(x=>({departure_at:x.departure_at,arrival_at:x.arrival_at}))}:null
