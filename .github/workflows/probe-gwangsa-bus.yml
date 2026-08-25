@@ -6,6 +6,9 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/probe-gwangsa-bus.yml'
+  schedule:
+    - cron: '40,50 3 * * 1-5'
+    - cron: '0,10,20 4 * * 1-5'
 
 permissions:
   contents: read
@@ -40,10 +43,11 @@ jobs:
               'arrivals':[],
               'candidate_count':0,
               'request_attempts':{},
+              'request_endpoint':{},
               'error':None,
           }
 
-          def fetch_json(label, base, params, attempts=3, timeout=20):
+          def fetch_json(label, base, params, attempts=3, timeout=25):
               key = (os.environ.get('GYEONGGI_BUS_API_KEY') or '').strip()
               if not key:
                   raise RuntimeError('GYEONGGI_BUS_API_KEY is missing')
@@ -63,6 +67,17 @@ jobs:
                           time.sleep(attempt * 2)
               raise RuntimeError(f'{label} failed after {attempts} attempts: ' + ' | '.join(errors))
 
+          def fetch_json_any(label, endpoints, params):
+              errors = []
+              for endpoint in endpoints:
+                  try:
+                      payload = fetch_json(label, endpoint, params)
+                      out['request_endpoint'][label] = endpoint
+                      return payload
+                  except Exception as exc:
+                      errors.append(f'{endpoint}: {exc}')
+              raise RuntimeError(f'{label} failed on all endpoints: ' + ' || '.join(errors))
+
           def response_parts(raw):
               response = raw.get('response', {}) if isinstance(raw, dict) else {}
               header = response.get('msgHeader', {}) if isinstance(response, dict) else {}
@@ -81,9 +96,12 @@ jobs:
               return seconds if seconds > 0 else None
 
           try:
-              station_raw = fetch_json(
+              station_raw = fetch_json_any(
                   'station_lookup',
-                  'https://apis.data.go.kr/6410000/busstationservice/v2/getBusStationListv2',
+                  [
+                      'https://apis.data.go.kr/6410000/busstationservice/v2/getBusStationListv2',
+                      'https://apis.data.go.kr/6410000/busstationservice/getBusStationList',
+                  ],
                   {'keyword':'14057'}
               )
               station_body = response_parts(station_raw)
@@ -104,9 +122,12 @@ jobs:
                   'regionName':station.get('regionName'),
               }
 
-              arrival_raw = fetch_json(
+              arrival_raw = fetch_json_any(
                   'arrival_lookup',
-                  'https://apis.data.go.kr/6410000/busarrivalservice/v2/getBusArrivalListv2',
+                  [
+                      'https://apis.data.go.kr/6410000/busarrivalservice/v2/getBusArrivalListv2',
+                      'https://apis.data.go.kr/6410000/busarrivalservice/getBusStationArrivalList',
+                  ],
                   {'stationId':station_id}
               )
               arrival_body = response_parts(arrival_raw)
@@ -156,6 +177,8 @@ jobs:
               raise SystemExit('gwangsa probe status is not ok')
           if not payload.get('station') or payload['station'].get('mobileNo') != '14057':
               raise SystemExit('exact Gwangsa stop resolution was not preserved')
+          if not payload.get('request_endpoint', {}).get('station_lookup') or not payload.get('request_endpoint', {}).get('arrival_lookup'):
+              raise SystemExit('successful probe did not preserve endpoint provenance')
           for row in payload.get('arrivals') or []:
               if row.get('predicted_arrival_at') and row.get('data_source') != 'realtime':
                   raise SystemExit('normalized realtime candidate lost data_source')
@@ -167,7 +190,8 @@ jobs:
               'station':payload.get('station'),
               'arrival_count':len(payload.get('arrivals') or []),
               'candidate_count':payload.get('candidate_count'),
-              'request_attempts':payload.get('request_attempts')
+              'request_attempts':payload.get('request_attempts'),
+              'request_endpoint':payload.get('request_endpoint')
           }, ensure_ascii=False))
           PY
 
