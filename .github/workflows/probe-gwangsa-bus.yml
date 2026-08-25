@@ -40,14 +40,16 @@ jobs:
               'mobile_no':'14057',
               'updated_at':now,
               'station':None,
+              'station_resolution':None,
               'arrivals':[],
               'candidate_count':0,
               'request_attempts':{},
               'request_endpoint':{},
+              'endpoint_errors':{},
               'error':None,
           }
 
-          def fetch_json(label, base, params, attempts=3, timeout=25):
+          def fetch_json(label, base, params, attempts=2, timeout=15):
               key = (os.environ.get('GYEONGGI_BUS_API_KEY') or '').strip()
               if not key:
                   raise RuntimeError('GYEONGGI_BUS_API_KEY is missing')
@@ -56,8 +58,9 @@ jobs:
               query = urllib.parse.urlencode(params, safe='%')
               req = urllib.request.Request(base + '?' + query, headers={'User-Agent':'Mozilla/5.0 gallae-poc/1.0'})
               errors = []
+              endpoint_key = f'{label}:{base}'
               for attempt in range(1, attempts + 1):
-                  out['request_attempts'][label] = attempt
+                  out['request_attempts'][endpoint_key] = attempt
                   try:
                       with urllib.request.urlopen(req, timeout=timeout) as response:
                           return json.loads(response.read().decode('utf-8', errors='replace'))
@@ -65,13 +68,14 @@ jobs:
                       errors.append(f'attempt {attempt}: {exc}')
                       if attempt < attempts:
                           time.sleep(attempt * 2)
+              out['endpoint_errors'][endpoint_key] = errors
               raise RuntimeError(f'{label} failed after {attempts} attempts: ' + ' | '.join(errors))
 
-          def fetch_json_any(label, endpoints, params):
+          def fetch_json_any(label, endpoints, params, attempts=2, timeout=15):
               errors = []
               for endpoint in endpoints:
                   try:
-                      payload = fetch_json(label, endpoint, params)
+                      payload = fetch_json(label, endpoint, params, attempts=attempts, timeout=timeout)
                       out['request_endpoint'][label] = endpoint
                       return payload
                   except Exception as exc:
@@ -88,6 +92,80 @@ jobs:
               body = response.get('msgBody', {}) if isinstance(response, dict) else {}
               return body if isinstance(body, dict) else {}
 
+          def as_list(value):
+              if isinstance(value, dict):
+                  return [value]
+              return value if isinstance(value, list) else []
+
+          def station_from_item(item):
+              station_id = str(item.get('stationId') or '').strip()
+              if not station_id:
+                  return None
+              return {
+                  'stationId':station_id,
+                  'mobileNo':str(item.get('mobileNo') or '').strip(),
+                  'stationName':item.get('stationName'),
+                  'regionName':item.get('regionName'),
+              }
+
+          def resolve_station_direct():
+              raw = fetch_json_any(
+                  'station_lookup',
+                  [
+                      'https://apis.data.go.kr/6410000/busstationservice/v2/getBusStationListv2',
+                      'https://apis.data.go.kr/6410000/busstationservice/getBusStationList',
+                  ],
+                  {'keyword':'14057'}
+              )
+              stations = as_list(response_parts(raw).get('busStationList'))
+              matches = [s for s in stations if str(s.get('mobileNo','')).strip() == '14057']
+              if not matches:
+                  raise RuntimeError('No exact Gyeonggi station match for mobileNo 14057')
+              station = station_from_item(matches[0])
+              if not station:
+                  raise RuntimeError('Matched stop has no stationId')
+              return station, 'station_lookup'
+
+          def resolve_station_via_route(route_name='27'):
+              route_raw = fetch_json_any(
+                  'route_lookup',
+                  [
+                      'https://apis.data.go.kr/6410000/busrouteservice/v2/getBusRouteListv2',
+                      'https://apis.data.go.kr/6410000/busrouteservice/getBusRouteList',
+                  ],
+                  {'keyword':route_name}
+              )
+              routes = as_list(response_parts(route_raw).get('busRouteList'))
+              exact = [r for r in routes if str(r.get('routeName') or '').strip() == route_name]
+              if not exact:
+                  raise RuntimeError(f'No exact Gyeonggi route match for routeName {route_name}')
+              route_errors = []
+              for route in exact:
+                  route_id = str(route.get('routeId') or '').strip()
+                  if not route_id:
+                      continue
+                  label = f'route_stations_{route_id}'
+                  try:
+                      stations_raw = fetch_json_any(
+                          label,
+                          [
+                              'https://apis.data.go.kr/6410000/busrouteservice/v2/getBusRouteStationListv2',
+                              'https://apis.data.go.kr/6410000/busrouteservice/getBusRouteStationList',
+                          ],
+                          {'routeId':route_id}
+                      )
+                      stations = as_list(response_parts(stations_raw).get('busRouteStationList'))
+                      matches = [s for s in stations if str(s.get('mobileNo','')).strip() == '14057']
+                      if matches:
+                          station = station_from_item(matches[0])
+                          if station:
+                              station['resolvedViaRouteId'] = route_id
+                              station['resolvedViaRouteName'] = route_name
+                              return station, 'route_station_list'
+                  except Exception as exc:
+                      route_errors.append(f'{route_id}: {exc}')
+              raise RuntimeError('Route fallback did not resolve mobileNo 14057' + (': ' + ' || '.join(route_errors) if route_errors else ''))
+
           def positive_seconds(value):
               try:
                   seconds = int(value)
@@ -96,31 +174,17 @@ jobs:
               return seconds if seconds > 0 else None
 
           try:
-              station_raw = fetch_json_any(
-                  'station_lookup',
-                  [
-                      'https://apis.data.go.kr/6410000/busstationservice/v2/getBusStationListv2',
-                      'https://apis.data.go.kr/6410000/busstationservice/getBusStationList',
-                  ],
-                  {'keyword':'14057'}
-              )
-              station_body = response_parts(station_raw)
-              stations = station_body.get('busStationList', [])
-              if isinstance(stations, dict):
-                  stations = [stations]
-              matches = [s for s in (stations or []) if str(s.get('mobileNo','')).strip() == '14057']
-              if not matches:
-                  raise RuntimeError('No exact Gyeonggi station match for mobileNo 14057')
-              station = matches[0]
-              station_id = str(station.get('stationId') or '').strip()
-              if not station_id:
-                  raise RuntimeError('Matched stop has no stationId')
-              out['station'] = {
-                  'stationId':station_id,
-                  'mobileNo':str(station.get('mobileNo') or ''),
-                  'stationName':station.get('stationName'),
-                  'regionName':station.get('regionName'),
-              }
+              direct_error = None
+              try:
+                  station, resolution = resolve_station_direct()
+              except Exception as exc:
+                  direct_error = str(exc)
+                  station, resolution = resolve_station_via_route('27')
+                  out['endpoint_errors']['direct_station_resolution'] = [direct_error]
+
+              station_id = station['stationId']
+              out['station'] = station
+              out['station_resolution'] = resolution
 
               arrival_raw = fetch_json_any(
                   'arrival_lookup',
@@ -128,19 +192,18 @@ jobs:
                       'https://apis.data.go.kr/6410000/busarrivalservice/v2/getBusArrivalListv2',
                       'https://apis.data.go.kr/6410000/busarrivalservice/getBusStationArrivalList',
                   ],
-                  {'stationId':station_id}
+                  {'stationId':station_id},
+                  attempts=2,
+                  timeout=20
               )
-              arrival_body = response_parts(arrival_raw)
-              arrivals = arrival_body.get('busArrivalList', [])
-              if isinstance(arrivals, dict):
-                  arrivals = [arrivals]
+              arrivals = as_list(response_parts(arrival_raw).get('busArrivalList'))
               fields = [
                   'routeId','routeName','routeTypeCd','routeDestId','routeDestName','flag','staOrder','turnSeq',
                   'predictTime1','predictTimeSec1','locationNo1','stationNm1','stateCd1',
                   'predictTime2','predictTimeSec2','locationNo2','stationNm2','stateCd2'
               ]
               normalized = []
-              for item in (arrivals or []):
+              for item in arrivals:
                   row = {k:item.get(k) for k in fields if k in item}
                   seconds = positive_seconds(item.get('predictTimeSec1'))
                   row['predicted_arrival_at'] = (observed + timedelta(seconds=seconds)).isoformat(timespec='seconds') if seconds else None
@@ -149,6 +212,8 @@ jobs:
                       {'source':'api','text':'경기도 버스도착정보 API의 광사 정류장 실시간 도착예측'},
                       {'source':'rule','text':'predictTimeSec1이 양수일 때 probe 관측시각에 더해 탑승 가능 예정시각으로 정규화'}
                   ]
+                  if resolution == 'route_station_list':
+                      row['evidence'].append({'source':'rule','text':'정류소 검색 API 장애 시 공식 노선 경유정류소 목록의 mobileNo 14057로 stationId를 교차 해석'})
                   if seconds is None:
                       row['evidence'].append({'source':'constraint','text':'유효한 predictTimeSec1이 없어 탑승 예정시각을 계산하지 않음'})
                   normalized.append(row)
@@ -177,8 +242,10 @@ jobs:
               raise SystemExit('gwangsa probe status is not ok')
           if not payload.get('station') or payload['station'].get('mobileNo') != '14057':
               raise SystemExit('exact Gwangsa stop resolution was not preserved')
-          if not payload.get('request_endpoint', {}).get('station_lookup') or not payload.get('request_endpoint', {}).get('arrival_lookup'):
-              raise SystemExit('successful probe did not preserve endpoint provenance')
+          if payload.get('station_resolution') not in {'station_lookup','route_station_list'}:
+              raise SystemExit('station resolution provenance is missing')
+          if not payload.get('request_endpoint', {}).get('arrival_lookup'):
+              raise SystemExit('successful probe did not preserve arrival endpoint provenance')
           for row in payload.get('arrivals') or []:
               if row.get('predicted_arrival_at') and row.get('data_source') != 'realtime':
                   raise SystemExit('normalized realtime candidate lost data_source')
@@ -188,6 +255,7 @@ jobs:
           print(json.dumps({
               'status':'ok',
               'station':payload.get('station'),
+              'station_resolution':payload.get('station_resolution'),
               'arrival_count':len(payload.get('arrivals') or []),
               'candidate_count':payload.get('candidate_count'),
               'request_attempts':payload.get('request_attempts'),
