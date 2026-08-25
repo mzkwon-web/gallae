@@ -1,9 +1,9 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-08-25T09:31:01+09:00",
-  "finished_at": "2026-08-25T09:31:05+09:00",
-  "duration_seconds": 3.89,
+  "started_at": "2026-08-25T09:32:10+09:00",
+  "finished_at": "2026-08-25T09:32:16+09:00",
+  "duration_seconds": 5.41,
   "subway": {
     "status": "ok",
     "arrival_count": 4,
@@ -112,8 +112,8 @@
         "btrainNo": "1910",
         "btrainSttus": "급행",
         "barvlDt": "0",
-        "arvlMsg2": "[23]번째 전역 (성환)",
-        "arvlMsg3": "성환",
+        "arvlMsg2": "[22]번째 전역 (평택)",
+        "arvlMsg3": "평택",
         "arvlCd": "99",
         "subwayHeading": null,
         "recptnDt": "2026-08-25 09:28:40",
@@ -121,7 +121,7 @@
         "statnTid": "1001080142",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "02023청량리1"
+        "ordkey": "02022청량리1"
       },
       {
         "subwayId": "1001",
@@ -188,8 +188,8 @@
         "btrainNo": "1405",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[6]번째 전역 (대방)",
-        "arvlMsg3": "대방",
+        "arvlMsg2": "[5]번째 전역 (신길)",
+        "arvlMsg3": "신길",
         "arvlCd": "99",
         "subwayHeading": null,
         "recptnDt": "2026-08-25 09:25:02",
@@ -197,7 +197,7 @@
         "statnTid": "1001080144",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "12006구로0"
+        "ordkey": "12005구로0"
       }
     ]
   },
