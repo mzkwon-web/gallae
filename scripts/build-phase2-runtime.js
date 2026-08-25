@@ -42,6 +42,40 @@ function classifyValidationWindow(snapshotAt, plannedDepartureAt, config){
   };
 }
 
+function validateOperationalWindow(value){
+  const errors = [];
+  const allowed = new Set(['before','within','after','unavailable']);
+  if(!value || typeof value !== 'object') return ['operational_validation is missing'];
+  if(!allowed.has(value.status)) errors.push('operational_validation.status is invalid');
+
+  const evidence = Array.isArray(value.evidence) ? value.evidence : [];
+  if(!evidence.length) errors.push('operational_validation.evidence is missing');
+  if(!evidence.some(item => item && item.source === 'rule')){
+    errors.push('operational_validation must preserve rule evidence');
+  }
+
+  if(value.status === 'unavailable'){
+    if(!evidence.some(item => item && item.source === 'constraint')){
+      errors.push('unavailable operational_validation must preserve constraint evidence');
+    }
+    return errors;
+  }
+
+  if(!Number.isFinite(Number(value.delta_from_planned_minutes))){
+    errors.push('operational_validation.delta_from_planned_minutes is missing');
+  }
+  if(!Number.isFinite(Date.parse(value.window_start_at || ''))){
+    errors.push('operational_validation.window_start_at is invalid');
+  }
+  if(!Number.isFinite(Date.parse(value.window_end_at || ''))){
+    errors.push('operational_validation.window_end_at is invalid');
+  }
+  if(value.status !== 'within' && !evidence.some(item => item && item.source === 'constraint')){
+    errors.push('out-of-window operational_validation must preserve constraint evidence');
+  }
+  return errors;
+}
+
 function main(){
   const root = path.resolve(__dirname,'..');
   const doksanPath = process.argv[2] || path.join(root,'data','doksan-line1.json');
@@ -91,11 +125,18 @@ function main(){
     ...result
   };
 
+  const contractErrors = validateOperationalWindow(payload.operational_validation);
+  if(contractErrors.length){
+    payload.operational_validation_contract = {status:'error', errors:contractErrors};
+  } else {
+    payload.operational_validation_contract = {status:'ok', errors:[]};
+  }
+
   fs.mkdirSync(path.dirname(outputPath),{recursive:true});
   fs.writeFileSync(outputPath,JSON.stringify(payload,null,2),'utf8');
   process.stdout.write(JSON.stringify(payload,null,2)+'\n');
 
-  if(!['ok','unavailable'].includes(payload.status)) process.exitCode=1;
+  if(!['ok','unavailable'].includes(payload.status) || contractErrors.length) process.exitCode=1;
 }
 
 main();
