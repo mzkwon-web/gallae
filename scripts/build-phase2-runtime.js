@@ -24,6 +24,7 @@ function main(){
     rows:doksan.rows || [],
     schedule,
     policy,
+    snapshot_at:doksan.updated_at || null,
     // These two values deliberately remain absent until evidence exists in repository data.
     planned_departure_at:null,
     final_access_minutes:null
