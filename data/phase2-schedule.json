@@ -22,7 +22,11 @@
       "명학": 14,
       "안양": 11,
       "관악": 8,
-      "석수": 5.5
+      "석수": 5.5,
+      "금천구청": 2.5
+    },
+    "station_alias_evidence": {
+      "금천구청": "KORAIL timetable row label '금천구' ↔ Seoul realtime current_location '금천구청'"
     },
     "doksan_to_guro_minutes": 7,
     "source_basis": "official_schedule_dominant_interval"
