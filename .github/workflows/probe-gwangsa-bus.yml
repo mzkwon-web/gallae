@@ -27,7 +27,8 @@ jobs:
           from pathlib import Path
 
           kst = timezone(timedelta(hours=9))
-          now = datetime.now(kst).isoformat(timespec='seconds')
+          observed = datetime.now(kst)
+          now = observed.isoformat(timespec='seconds')
           out = {
               'status':'error',
               'source':'gyeonggi_bus_api',
@@ -37,6 +38,7 @@ jobs:
               'updated_at':now,
               'station':None,
               'arrivals':[],
+              'candidate_count':0,
               'error':None,
           }
 
@@ -60,6 +62,13 @@ jobs:
                   raise RuntimeError(f'GYEONGGI {code}: {message}')
               body = response.get('msgBody', {}) if isinstance(response, dict) else {}
               return body if isinstance(body, dict) else {}
+
+          def positive_seconds(value):
+              try:
+                  seconds = int(value)
+              except (TypeError, ValueError):
+                  return None
+              return seconds if seconds > 0 else None
 
           try:
               station_raw = fetch_json(
@@ -97,7 +106,21 @@ jobs:
                   'predictTime1','predictTimeSec1','locationNo1','stationNm1','stateCd1',
                   'predictTime2','predictTimeSec2','locationNo2','stationNm2','stateCd2'
               ]
-              out['arrivals'] = [{k:a.get(k) for k in fields if k in a} for a in (arrivals or [])]
+              normalized = []
+              for item in (arrivals or []):
+                  row = {k:item.get(k) for k in fields if k in item}
+                  seconds = positive_seconds(item.get('predictTimeSec1'))
+                  row['predicted_arrival_at'] = (observed + timedelta(seconds=seconds)).isoformat(timespec='seconds') if seconds else None
+                  row['data_source'] = 'realtime'
+                  row['evidence'] = [
+                      {'source':'api','text':'경기도 버스도착정보 API의 광사 정류장 실시간 도착예측'},
+                      {'source':'rule','text':'predictTimeSec1이 양수일 때 probe 관측시각에 더해 탑승 가능 예정시각으로 정규화'}
+                  ]
+                  if seconds is None:
+                      row['evidence'].append({'source':'constraint','text':'유효한 predictTimeSec1이 없어 탑승 예정시각을 계산하지 않음'})
+                  normalized.append(row)
+              out['arrivals'] = normalized
+              out['candidate_count'] = sum(1 for row in normalized if row.get('predicted_arrival_at'))
               out['status'] = 'ok'
           except Exception as e:
               out['error'] = str(e)
@@ -107,6 +130,32 @@ jobs:
           print(json.dumps(out, ensure_ascii=False, indent=2))
           if out['status'] != 'ok':
               raise SystemExit(out['error'])
+          PY
+
+      - name: Verify normalized candidates
+        if: success()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path('probe-output/gwangsa-bus.json').read_text(encoding='utf-8'))
+          if payload.get('status') != 'ok':
+              raise SystemExit('gwangsa probe status is not ok')
+          if not payload.get('station') or payload['station'].get('mobileNo') != '14057':
+              raise SystemExit('exact Gwangsa stop resolution was not preserved')
+          for row in payload.get('arrivals') or []:
+              if row.get('predicted_arrival_at') and row.get('data_source') != 'realtime':
+                  raise SystemExit('normalized realtime candidate lost data_source')
+              sources = {item.get('source') for item in row.get('evidence') or []}
+              if row.get('predicted_arrival_at') and not {'api','rule'}.issubset(sources):
+                  raise SystemExit('normalized candidate evidence is incomplete')
+          print(json.dumps({
+              'status':'ok',
+              'station':payload.get('station'),
+              'arrival_count':len(payload.get('arrivals') or []),
+              'candidate_count':payload.get('candidate_count')
+          }, ensure_ascii=False))
           PY
 
       - name: Upload probe artifact
