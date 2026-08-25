@@ -72,8 +72,14 @@ jobs:
           contract = runtime.get('operational_validation_contract') or {}
           status = operational.get('status')
           decision_usable = operational.get('decision_usable')
+          runtime_status = runtime.get('status')
+          usable_candidate_count = int(runtime.get('usable_candidate_count') or 0)
+          decision_reason = operational.get('decision_reason')
           checks['operational_status'] = status
           checks['decision_usable'] = decision_usable
+          checks['decision_reason'] = decision_reason
+          checks['runtime_status'] = runtime_status
+          checks['usable_candidate_count'] = usable_candidate_count
           checks['operational_contract_status'] = contract.get('status')
           checks['operational_contract_errors'] = contract.get('errors') or []
 
@@ -81,8 +87,15 @@ jobs:
               errors.append(f'invalid operational_validation.status: {status}')
           if not isinstance(decision_usable, bool):
               errors.append('operational_validation.decision_usable must be boolean')
-          elif decision_usable != (status == 'within'):
-              errors.append('decision_usable must be true only when operational_validation.status == within')
+          elif decision_usable:
+              if status != 'within':
+                  errors.append('decision_usable can be true only when operational_validation.status == within')
+              if runtime_status != 'ok' or usable_candidate_count <= 0:
+                  errors.append('decision_usable requires at least one actual usable hybrid candidate')
+          elif status == 'within' and runtime_status == 'ok' and usable_candidate_count > 0:
+              errors.append('decision_usable must be true when within the window and a usable hybrid candidate exists')
+          if not isinstance(decision_reason, str) or not decision_reason:
+              errors.append('operational_validation.decision_reason must be present')
           if contract.get('status') != 'ok' or (contract.get('errors') or []):
               errors.append('operational_validation_contract must be ok with no errors')
 
@@ -93,6 +106,8 @@ jobs:
               errors.append('operational_validation evidence must preserve source=rule')
           if status in {'before', 'after', 'unavailable'} and 'constraint' not in evidence_sources:
               errors.append(f'operational_validation status={status} must preserve source=constraint')
+          if status == 'within' and not decision_usable and 'constraint' not in evidence_sources:
+              errors.append('within-window unusable decision must preserve source=constraint')
 
           checks['pages_verification_status'] = verification.get('status')
           checks['pages_verification_errors'] = verification.get('errors') or []
