@@ -57,11 +57,18 @@ jobs:
       - name: Build hybrid rolling ETA from live and official schedule inputs
         run: node scripts/build-phase2-runtime.js runtime-input/doksan-line1.json runtime-output/phase2-runtime.json
 
-      - name: Verify runtime invariants
+      - name: Verify runtime invariants and plan-deviation regression
         run: |
           node - <<'NODE'
           const fs=require('fs');
+          require('./lib/phase2-hybrid-input.js');
+          require('./lib/schedule-position-eta.js');
+          require('./lib/rolling-eta.js');
+          require('./lib/phase2-hybrid-runtime.js');
+
           const p=JSON.parse(fs.readFileSync('runtime-output/phase2-runtime.json','utf8'));
+          const schedule=JSON.parse(fs.readFileSync('data/phase2-schedule.json','utf8'));
+          const policy=JSON.parse(fs.readFileSync('config/phase2-hybrid.json','utf8'));
           const errors=[];
           if(!['ok','unavailable'].includes(p.status)) errors.push('invalid runtime status');
           if(p.source_priority.join('>')!=='realtime>schedule>plan>estimate') errors.push('source priority mismatch');
@@ -76,12 +83,45 @@ jobs:
               if((item.result.legs||[]).some(x=>x.data_source!=='schedule')) errors.push('post-Guro leg did not use schedule fallback');
             }
           }
+
+          function rawRow(observed){
+            return {
+              subwayId:'1001',statnNm:'독산',updnLine:'상행',
+              trainLineNm:'광운대행 - 가산디지털단지방면',bstatnNm:'광운대',btrainNo:'TEST',btrainSttus:'일반',
+              barvlDt:'0',arvlMsg2:'[2]번째 전역 (석수)',arvlMsg3:'석수',arvlCd:'99',recptnDt:observed,
+              statnFid:'1001080144',statnTid:'1001080142',ordkey:'test'
+            };
+          }
+          function scenario(observed,snapshot){
+            return globalThis.GallaePhase2HybridRuntime.buildFromRows({
+              rows:[rawRow(observed)],schedule,policy,snapshot_at:snapshot,
+              planned_departure_at:'2026-08-25T12:57:00+09:00',final_access_minutes:null
+            });
+          }
+          const onPlan=scenario('2026-08-25 12:50:00','2026-08-25T12:50:00+09:00');
+          const delayed=scenario('2026-08-25 13:00:00','2026-08-25T13:00:00+09:00');
+          const a=onPlan.ranked[0], b=delayed.ranked[0];
+          if(!a||!b) errors.push('synthetic rolling candidate missing');
+          if(a&&a.plan_deviation_minutes!==-1.5) errors.push(`unexpected early plan deviation ${a.plan_deviation_minutes}`);
+          if(b&&b.plan_deviation_minutes!==8.5) errors.push(`unexpected delayed plan deviation ${b.plan_deviation_minutes}`);
+          if(a&&a.legs[0].departure_at!=='2026-08-25T13:04:30+09:00') errors.push('early scenario wrong Guro-Sosa connection');
+          if(b&&b.legs[0].departure_at!=='2026-08-25T13:13:30+09:00') errors.push('delayed scenario did not roll to next Guro-Sosa connection');
+          if(a&&a.legs[1].departure_at!=='2026-08-25T13:27:30+09:00') errors.push('early scenario wrong Sosa-Sincheon connection');
+          if(b&&b.legs[1].departure_at!=='2026-08-25T13:42:30+09:00') errors.push('delayed scenario did not roll to next Sosa-Sincheon connection');
+          if(a&&a.deadline_state!=='target_met') errors.push('early scenario should meet target');
+          if(b&&b.deadline_state!=='deadline_met') errors.push('delayed scenario should miss target but meet deadline');
+          if(b&&b.margin_state!=='caution') errors.push('delayed scenario should be caution margin');
+
           const verification={
             status:errors.length?'error':'ok',
             errors,
             runtime_status:p.status,
             realtime_candidate_count:p.realtime_candidate_count,
             usable_candidate_count:p.usable_candidate_count,
+            regression:{
+              early:a?{plan_deviation_minutes:a.plan_deviation_minutes,final_eta:a.final_eta,deadline_state:a.deadline_state,margin_state:a.margin_state,legs:a.legs.map(x=>({departure_at:x.departure_at,arrival_at:x.arrival_at}))}:null,
+              delayed:b?{plan_deviation_minutes:b.plan_deviation_minutes,final_eta:b.final_eta,deadline_state:b.deadline_state,margin_state:b.margin_state,legs:b.legs.map(x=>({departure_at:x.departure_at,arrival_at:x.arrival_at}))}:null
+            },
             verified_at:new Date().toISOString()
           };
           fs.writeFileSync('runtime-output/verification.json',JSON.stringify(verification,null,2));
