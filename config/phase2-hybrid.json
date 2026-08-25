@@ -1,7 +1,12 @@
 {
   "version": "0.1",
   "mode": "hybrid_rolling_eta",
-  "data_priority": ["realtime", "schedule", "plan", "estimate"],
+  "data_priority": [
+    "realtime",
+    "schedule",
+    "plan",
+    "estimate"
+  ],
   "targets": {
     "target_arrival": "13:50",
     "hard_deadline": "14:00"
@@ -12,11 +17,30 @@
     "urgent_below_minutes": 3
   },
   "ranking": {
-    "sufficient": ["comfort", "stability", "preference", "eta"],
-    "caution": ["stability", "comfort", "eta", "preference_weakened"],
-    "urgent": ["eta", "lateness"]
+    "sufficient": [
+      "comfort",
+      "stability",
+      "preference",
+      "eta"
+    ],
+    "caution": [
+      "stability",
+      "comfort",
+      "eta",
+      "preference_weakened"
+    ],
+    "urgent": [
+      "eta",
+      "lateness"
+    ]
   },
-  "evidence_sources": ["api", "measured", "preference", "constraint", "rule"],
+  "evidence_sources": [
+    "api",
+    "measured",
+    "preference",
+    "constraint",
+    "rule"
+  ],
   "segment_policy": {
     "doksan_to_guro": "realtime_when_validated",
     "guro_to_sosa": "schedule_or_plan_fallback",
@@ -26,5 +50,14 @@
   "v0_1_non_goals": [
     "same_train_schedule_matching",
     "proving_operator_train_delay"
-  ]
+  ],
+  "journey_profile": {
+    "destination": "시흥여성인력개발센터",
+    "final_access": {
+      "from": "신천",
+      "minutes": 10,
+      "source": "measured",
+      "evidence": "신천역 도착 후 최종 목적지까지 도보 약 10분을 사용자 실측/운영 기준으로 사용"
+    }
+  }
 }
