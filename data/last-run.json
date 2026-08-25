@@ -1,9 +1,9 @@
 {
   "status": "ok",
-  "overall_status": "ok",
-  "started_at": "2026-08-25T21:16:43+09:00",
-  "finished_at": "2026-08-25T21:16:47+09:00",
-  "duration_seconds": 4.31,
+  "overall_status": "degraded",
+  "started_at": "2026-08-25T21:17:25+09:00",
+  "finished_at": "2026-08-25T21:18:20+09:00",
+  "duration_seconds": 55.19,
   "subway": {
     "status": "ok",
     "arrival_count": 4,
@@ -150,16 +150,16 @@
         "btrainNo": "1413",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[7]번째 전역 (노량진)",
-        "arvlMsg3": "노량진",
+        "arvlMsg2": "[6]번째 전역 (대방)",
+        "arvlMsg3": "대방",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 21:14:38",
+        "recptnDt": "2026-08-25 21:16:48",
         "statnFid": "1001080142",
         "statnTid": "1001080144",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "11007구로0"
+        "ordkey": "11006구로0"
       },
       {
         "subwayId": "1001",
@@ -197,11 +197,10 @@
       "error": null
     },
     "gyeonggi": {
-      "status": "ok",
+      "status": "error",
       "source": "gyeonggi_bus_api",
       "test_station_id": "200000078",
-      "error": null,
-      "arrival_count": 15
+      "error": "<urlopen error timed out>"
     }
   }
 }
