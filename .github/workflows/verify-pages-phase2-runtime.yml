@@ -1,0 +1,127 @@
+name: Verify deployed phase 2 Pages runtime
+
+on:
+  workflow_run:
+    workflows: ["Deploy Gallae with live transit data"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  verify-pages-runtime:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download deployed Pages artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: downloaded-pages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Extract Pages artifact
+        run: |
+          mkdir -p site
+          test -f downloaded-pages/artifact.tar
+          tar -xf downloaded-pages/artifact.tar -C site
+
+      - name: Verify deployed phase 2 runtime contract
+        env:
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
+          SOURCE_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          errors = []
+          checks = {}
+
+          def load(path):
+              return json.loads(Path(path).read_text(encoding='utf-8'))
+
+          runtime_path = Path('site/data/phase2-runtime.json')
+          verification_path = Path('site/data/verification.json')
+          checks['phase2_runtime_present'] = runtime_path.exists()
+          checks['verification_present'] = verification_path.exists()
+          if not runtime_path.exists():
+              errors.append('deployed Pages artifact is missing data/phase2-runtime.json')
+          if not verification_path.exists():
+              errors.append('deployed Pages artifact is missing data/verification.json')
+
+          runtime = load(runtime_path) if runtime_path.exists() else {}
+          verification = load(verification_path) if verification_path.exists() else {}
+
+          priority = runtime.get('source_priority') or []
+          checks['source_priority'] = priority
+          if priority[:3] != ['realtime', 'schedule/plan', 'estimate']:
+              errors.append('source priority must be realtime -> schedule/plan -> estimate')
+
+          checks['target_clock'] = runtime.get('target_clock')
+          checks['deadline_clock'] = runtime.get('deadline_clock')
+          if runtime.get('target_clock') != '13:50':
+              errors.append('target_clock must be 13:50')
+          if runtime.get('deadline_clock') != '14:00':
+              errors.append('deadline_clock must be 14:00')
+
+          operational = runtime.get('operational_validation') or {}
+          contract = runtime.get('operational_validation_contract') or {}
+          status = operational.get('status')
+          decision_usable = operational.get('decision_usable')
+          checks['operational_status'] = status
+          checks['decision_usable'] = decision_usable
+          checks['operational_contract_status'] = contract.get('status')
+          checks['operational_contract_errors'] = contract.get('errors') or []
+
+          if status not in {'before', 'within', 'after', 'unavailable'}:
+              errors.append(f'invalid operational_validation.status: {status}')
+          if not isinstance(decision_usable, bool):
+              errors.append('operational_validation.decision_usable must be boolean')
+          elif decision_usable != (status == 'within'):
+              errors.append('decision_usable must be true only when operational_validation.status == within')
+          if contract.get('status') != 'ok' or (contract.get('errors') or []):
+              errors.append('operational_validation_contract must be ok with no errors')
+
+          evidence = operational.get('evidence') or []
+          evidence_sources = {e.get('source') for e in evidence if isinstance(e, dict)}
+          checks['operational_evidence_sources'] = sorted(x for x in evidence_sources if x)
+          if 'rule' not in evidence_sources:
+              errors.append('operational_validation evidence must preserve source=rule')
+          if status in {'before', 'after', 'unavailable'} and 'constraint' not in evidence_sources:
+              errors.append(f'operational_validation status={status} must preserve source=constraint')
+
+          checks['pages_verification_status'] = verification.get('status')
+          checks['pages_verification_errors'] = verification.get('errors') or []
+          checks['pages_build_commit'] = verification.get('build_commit')
+          expected_sha = os.environ.get('SOURCE_HEAD_SHA')
+          if verification.get('status') != 'ok' or (verification.get('errors') or []):
+              errors.append('deployed data/verification.json must be ok with no errors')
+          if expected_sha and verification.get('build_commit') != expected_sha:
+              errors.append('deployed verification build_commit does not match source workflow head_sha')
+
+          report = {
+              'status': 'ok' if not errors else 'error',
+              'source_run_id': os.environ.get('SOURCE_RUN_ID'),
+              'source_head_sha': expected_sha,
+              'checks': checks,
+              'errors': errors,
+          }
+          Path('pages-phase2-verification.json').write_text(
+              json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8'
+          )
+          print(json.dumps(report, ensure_ascii=False, indent=2))
+          if errors:
+              raise SystemExit('Deployed Pages phase 2 runtime contract verification failed')
+          PY
+
+      - name: Upload deployed runtime verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-phase2-verification
+          path: pages-phase2-verification.json
+          if-no-files-found: warn
