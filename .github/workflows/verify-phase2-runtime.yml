@@ -71,7 +71,7 @@ jobs:
           const policy=JSON.parse(fs.readFileSync('config/phase2-hybrid.json','utf8'));
           const errors=[];
           if(!['ok','unavailable'].includes(p.status)) errors.push('invalid runtime status');
-          if(p.source_priority.join('>')!=='realtime>schedule>plan>estimate') errors.push('source priority mismatch');
+          if(p.source_priority.join('>')!=='realtime>schedule/plan>estimate') errors.push('source priority mismatch');
           if(p.target_clock!=='13:50') errors.push('target mismatch');
           if(p.deadline_clock!=='14:00') errors.push('deadline mismatch');
           if(p.final_access_minutes!==10) errors.push(`unexpected final access ${p.final_access_minutes}`);
