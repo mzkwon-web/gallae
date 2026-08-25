@@ -69,9 +69,9 @@ jobs:
           def find_station_row(ws, station):
               target = norm(station)
               for row in ws.iter_rows():
-                  for cell in row[:4]:
-                      if target and target == norm(cell.value):
-                          return row[0].row
+                  label = norm(row[0].value) if row else ''
+                  if target and target in label:
+                      return row[0].row
               return None
 
           def row_values(ws, row_no):
