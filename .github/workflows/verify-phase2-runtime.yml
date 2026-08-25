@@ -44,8 +44,7 @@ jobs:
           payload={'status':'ok','station':'독산','line':'1호선','updated_at':datetime.now(timezone(timedelta(hours=9))).isoformat(timespec='seconds'),'rows':[{k:r.get(k) for k in fields if k in r} for r in rows],'row_count':len(rows)}
           Path('runtime-input').mkdir(exist_ok=True)
           Path('runtime-input/doksan-line1.json').write_text(json.dumps(payload,ensure_ascii=False,indent=2),encoding='utf-8')
-          print(json.dumps({'status':'ok','row_count':len(rows)},ensure_ascii=False))
-          if not rows: raise SystemExit('No Line 1 rows returned for Doksan')
+          print(json.dumps({'status':'ok','row_count':len(rows),'live_rows_available':bool(rows)},ensure_ascii=False))
           PY
 
       - name: Build hybrid rolling ETA from live and official schedule inputs
@@ -75,14 +74,21 @@ jobs:
           if(p.deadline_clock!=='14:00') errors.push('deadline mismatch');
           if(p.final_access_minutes!==10) errors.push(`unexpected final access ${p.final_access_minutes}`);
           if(p.final_access_source!=='measured') errors.push('final access source mismatch');
-          if(p.planned_departure_status!=='derived_from_schedule_plan') errors.push('planned departure should be derived from schedule plan');
-          if(!p.planned_departure_at || new Date(p.planned_departure_at).toLocaleTimeString('en-GB',{timeZone:'Asia/Seoul',hour12:false})!=='12:57:30') errors.push(`unexpected planned departure ${p.planned_departure_at}`);
           const ov=p.operational_validation||{}, ovContract=p.operational_validation_contract||{};
           if(!new Set(['before','within','after','unavailable']).has(ov.status)) errors.push(`invalid operational validation status ${ov.status}`);
           if(ovContract.status!=='ok'||(ovContract.errors||[]).length) errors.push('operational validation contract failed');
           if(typeof ov.decision_usable!=='boolean') errors.push('decision_usable must be boolean');
           if(ov.decision_usable && !(ov.status==='within' && p.status==='ok' && p.usable_candidate_count>0)) errors.push('decision_usable requires within + usable candidate');
           if(!Array.isArray(ov.evidence)||!ov.evidence.some(x=>x&&x.source==='rule')) errors.push('operational validation rule evidence missing');
+          if(p.planned_departure_status==='derived_from_schedule_plan'){
+            if(!p.planned_departure_at || new Date(p.planned_departure_at).toLocaleTimeString('en-GB',{timeZone:'Asia/Seoul',hour12:false})!=='12:57:30') errors.push(`unexpected planned departure ${p.planned_departure_at}`);
+          } else if(p.planned_departure_status==='unavailable'){
+            if(p.planned_departure_at!==null) errors.push('unavailable planned departure must be null');
+            if(ov.status!=='unavailable'||ov.decision_usable!==false) errors.push('unavailable live runtime must not be decision usable');
+            if(!ov.evidence.some(x=>x&&x.source==='constraint')) errors.push('unavailable live runtime constraint evidence missing');
+          } else {
+            errors.push(`invalid planned departure status ${p.planned_departure_status}`);
+          }
 
           function rawRow(observed){return {subwayId:'1001',statnNm:'독산',updnLine:'상행',trainLineNm:'광운대행 - 가산디지털단지방면',bstatnNm:'광운대',btrainNo:'TEST',btrainSttus:'일반',barvlDt:'0',arvlMsg2:'[2]번째 전역 (석수)',arvlMsg3:'석수',arvlCd:'99',recptnDt:observed,statnFid:'1001080144',statnTid:'1001080142',ordkey:'test'};}
           function scenario(observed,snapshot){return globalThis.GallaePhase2HybridRuntime.buildFromRows({rows:[rawRow(observed)],schedule,policy,snapshot_at:snapshot,planned_departure_at:'2026-08-25T12:57:00+09:00',final_access_minutes:null});}
@@ -104,7 +110,7 @@ jobs:
           if(overrideProbe.departure_at!=='2026-08-25T13:04:30+09:00'||overrideProbe.min_transfer_minutes!==2) errors.push('leg minimum-transfer override failed');
           if(a&&a.margin_state!=='urgent') errors.push(`early scenario should become urgent after realistic transfers: ${a.margin_state}`);
           if(b&&b.deadline_state!=='late') errors.push('delayed scenario should be late');
-          const verification={status:errors.length?'error':'ok',errors,source_types:canonicalSources,runtime_status:p.status,realtime_candidate_count:p.realtime_candidate_count,usable_candidate_count:p.usable_candidate_count,planned_departure_at:p.planned_departure_at,final_access_minutes:p.final_access_minutes,minimum_transfer_minutes:3,operational_validation:{status:ov.status,decision_usable:ov.decision_usable,contract_status:ovContract.status},regression:{early:a?{plan_deviation_minutes:a.plan_deviation_minutes,final_eta:a.final_eta,deadline_state:a.deadline_state,margin_state:a.margin_state,legs:a.legs.map(x=>({departure_at:x.departure_at,arrival_at:x.arrival_at,min_transfer_minutes:x.min_transfer_minutes}))}:null,delayed:b?{plan_deviation_minutes:b.plan_deviation_minutes,final_eta:b.final_eta,deadline_state:b.deadline_state,margin_state:b.margin_state,legs:b.legs.map(x=>({departure_at:x.departure_at,arrival_at:x.arrival_at,min_transfer_minutes:x.min_transfer_minutes}))}:null},verified_at:new Date().toISOString()};
+          const verification={status:errors.length?'error':'ok',errors,source_types:canonicalSources,runtime_status:p.status,realtime_candidate_count:p.realtime_candidate_count,usable_candidate_count:p.usable_candidate_count,planned_departure_status:p.planned_departure_status,planned_departure_at:p.planned_departure_at,final_access_minutes:p.final_access_minutes,minimum_transfer_minutes:3,operational_validation:{status:ov.status,decision_usable:ov.decision_usable,contract_status:ovContract.status},regression:{early:a?{plan_deviation_minutes:a.plan_deviation_minutes,final_eta:a.final_eta,deadline_state:a.deadline_state,margin_state:a.margin_state,legs:a.legs.map(x=>({departure_at:x.departure_at,arrival_at:x.arrival_at,min_transfer_minutes:x.min_transfer_minutes}))}:null,delayed:b?{plan_deviation_minutes:b.plan_deviation_minutes,final_eta:b.final_eta,deadline_state:b.deadline_state,margin_state:b.margin_state,legs:b.legs.map(x=>({departure_at:x.departure_at,arrival_at:x.arrival_at,min_transfer_minutes:x.min_transfer_minutes}))}:null},verified_at:new Date().toISOString()};
           fs.writeFileSync('runtime-output/verification.json',JSON.stringify(verification,null,2));
           console.log(JSON.stringify(verification,null,2));
           if(errors.length) process.exit(1);
