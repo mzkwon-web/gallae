@@ -19,6 +19,11 @@
   "doksan_position_profile": {
     "service_type": "일반",
     "minutes_to_doksan_by_station": {
+      "수원": 34,
+      "의왕": 24.5,
+      "당정": 22,
+      "군포": 20,
+      "금정": 16.5,
       "명학": 14,
       "안양": 11,
       "관악": 8,
@@ -27,6 +32,18 @@
     },
     "station_alias_evidence": {
       "금천구청": "KORAIL timetable row label '금천구' ↔ Seoul realtime current_location '금천구청'"
+    },
+    "profile_observations": {
+      "수원": {"dominant_count":85,"observations":111},
+      "의왕": {"dominant_count":91,"observations":111},
+      "당정": {"dominant_count":91,"observations":111},
+      "군포": {"dominant_count":92,"observations":111},
+      "금정": {"dominant_count":109,"observations":111},
+      "명학": {"dominant_count":110,"observations":111},
+      "안양": {"dominant_count":110,"observations":111},
+      "관악": {"dominant_count":110,"observations":111},
+      "석수": {"dominant_count":110,"observations":111},
+      "금천구청": {"dominant_count":111,"observations":111}
     },
     "doksan_to_guro_minutes": 7,
     "source_basis": "official_schedule_dominant_interval"
