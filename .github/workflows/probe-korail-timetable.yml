@@ -1,0 +1,99 @@
+name: Probe official KORAIL timetables
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/probe-korail-timetable.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install workbook reader
+        run: python -m pip install --disable-pip-version-check openpyxl
+
+      - name: Download current official timetables and inspect relevant rows
+        run: |
+          python - <<'PY'
+          import json, re, urllib.request
+          from datetime import datetime, timezone, timedelta
+          from pathlib import Path
+          from openpyxl import load_workbook
+
+          kst = timezone(timedelta(hours=9))
+          Path('probe-output').mkdir(exist_ok=True)
+          files = {
+              'line1_weekday': {
+                  'title':'1호선(경부장항선, 경인경원선, 광명셔틀) 전동열차 평일 시각표(2026.2.28.부터)',
+                  'file_id':'jfile/202602/23/2026022319c8818dfa4360.xlsx',
+                  'stations':['석수','금천구청','독산','가산디지털단지','구로'],
+              },
+              'seohae_current': {
+                  'title':'서해선 전동열차 시각표(2026.4.20.부터)',
+                  'file_id':'jfile/202604/16/2026041619d9411e417190.xlsx',
+                  'stations':['소사','신천'],
+              },
+          }
+
+          def clean(v):
+              if v is None: return None
+              if hasattr(v, 'isoformat'):
+                  try: return v.isoformat()
+                  except Exception: pass
+              return str(v)
+
+          result = {
+              'status':'ok',
+              'source':'korail_official_timetable',
+              'updated_at':datetime.now(kst).isoformat(timespec='seconds'),
+              'files':{}
+          }
+
+          for key, meta in files.items():
+              url = 'https://www.korail.com/file/cubedata/COMMON/' + meta['file_id']
+              dest = Path('probe-output') / f'{key}.xlsx'
+              entry = {'title':meta['title'],'file_id':meta['file_id'],'url':url,'status':'error','sheets':[],'matches':[],'error':None}
+              try:
+                  req = urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0 gallae-poc/1.0'})
+                  with urllib.request.urlopen(req, timeout=40) as r:
+                      data = r.read()
+                  dest.write_bytes(data)
+                  wb = load_workbook(dest, data_only=False, read_only=True)
+                  entry['sheets'] = wb.sheetnames
+                  targets = set(meta['stations'])
+                  for ws in wb.worksheets:
+                      for row in ws.iter_rows():
+                          values = [clean(c.value) for c in row]
+                          text = ' | '.join(v or '' for v in values)
+                          hit = [s for s in targets if s in text]
+                          if not hit:
+                              continue
+                          row_no = row[0].row if row else None
+                          entry['matches'].append({'sheet':ws.title,'row':row_no,'stations':sorted(hit),'values':values})
+                  entry['status']='ok'
+              except Exception as e:
+                  entry['error']=str(e)
+                  result['status']='degraded'
+              result['files'][key]=entry
+
+          Path('probe-output/korail-timetable-probe.json').write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
+          print(json.dumps(result, ensure_ascii=False, indent=2))
+          if result['status'] != 'ok':
+              raise SystemExit('One or more KORAIL timetable probes failed')
+          PY
+
+      - name: Upload timetable probe artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: korail-timetable-probe
+          path: probe-output/korail-timetable-probe.json
+          if-no-files-found: error
