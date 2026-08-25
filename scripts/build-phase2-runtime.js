@@ -20,15 +20,20 @@ function main(){
   const policy = readJson(path.join(root,'config','phase2-hybrid.json'));
   const doksan = readJson(doksanPath);
 
+  const journeyProfile = policy.journey_profile || {};
+  const finalAccess = journeyProfile.final_access || {};
+  const finalAccessMinutes = Number.isFinite(Number(finalAccess.minutes)) ? Number(finalAccess.minutes) : null;
+
   const result = globalThis.GallaePhase2HybridRuntime.buildFromRows({
     rows:doksan.rows || [],
     schedule,
     policy,
     snapshot_at:doksan.updated_at || null,
-    // These two values deliberately remain absent until evidence exists in repository data.
     planned_departure_at:null,
-    final_access_minutes:null
+    final_access_minutes:finalAccessMinutes
   });
+
+  const derivedPlan = result.planned_origin || null;
 
   const payload = {
     status:result.status,
@@ -37,9 +42,15 @@ function main(){
     source_priority:policy.data_priority,
     target_clock:policy.targets && policy.targets.target_arrival,
     deadline_clock:policy.targets && policy.targets.hard_deadline,
-    scope:'Doksan realtime position + official KORAIL schedule through Sincheon',
-    planned_departure_status:'missing_repository_evidence',
-    final_access_status:'missing_repository_evidence',
+    scope:finalAccessMinutes == null
+      ? 'Doksan realtime position + official KORAIL schedule through Sincheon'
+      : 'Doksan realtime position + official KORAIL schedule + measured final access to destination',
+    journey_destination:journeyProfile.destination || null,
+    planned_departure_status:derivedPlan ? 'derived_from_schedule_plan' : 'unavailable',
+    planned_departure_at:derivedPlan && derivedPlan.planned_departure_at || null,
+    final_access_status:finalAccessMinutes == null ? 'missing_repository_evidence' : 'available',
+    final_access_minutes:finalAccessMinutes,
+    final_access_source:finalAccess.source || null,
     ...result
   };
 
