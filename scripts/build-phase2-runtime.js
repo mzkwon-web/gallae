@@ -12,6 +12,36 @@ function readJson(file){
   return JSON.parse(fs.readFileSync(file,'utf8'));
 }
 
+function classifyValidationWindow(snapshotAt, plannedDepartureAt, config){
+  const snapshotMs = Date.parse(snapshotAt || '');
+  const plannedMs = Date.parse(plannedDepartureAt || '');
+  const before = Number(config && config.before_planned_departure_minutes);
+  const after = Number(config && config.after_planned_departure_minutes);
+  if(!Number.isFinite(snapshotMs) || !Number.isFinite(plannedMs) || !Number.isFinite(before) || !Number.isFinite(after)){
+    return {
+      status:'unavailable',
+      delta_from_planned_minutes:null,
+      window_start_at:null,
+      window_end_at:null,
+      evidence:[{source:'constraint',text:'계획 출발시각 또는 runtime validation window 근거가 없어 운영 검증창을 판정하지 않음'}]
+    };
+  }
+  const delta = (snapshotMs - plannedMs) / 60000;
+  const start = new Date(plannedMs - before * 60000).toISOString();
+  const end = new Date(plannedMs + after * 60000).toISOString();
+  const status = delta < -before ? 'before' : delta > after ? 'after' : 'within';
+  return {
+    status,
+    delta_from_planned_minutes:Math.round(delta * 10) / 10,
+    window_start_at:start,
+    window_end_at:end,
+    evidence:[
+      {source:'rule',text:'실제 출발 판단용 plan_deviation은 계획 독산 탑승시각 전후의 검증창 내 snapshot을 우선 사용'},
+      ...(status === 'within' ? [] : [{source:'constraint',text:'현재 snapshot은 운영 검증창 밖이므로 계산 결과를 회귀/구조 검증용으로만 취급'}])
+    ]
+  };
+}
+
 function main(){
   const root = path.resolve(__dirname,'..');
   const doksanPath = process.argv[2] || path.join(root,'data','doksan-line1.json');
@@ -34,6 +64,12 @@ function main(){
   });
 
   const derivedPlan = result.planned_origin || null;
+  const plannedDepartureAt = derivedPlan && derivedPlan.planned_departure_at || null;
+  const operationalValidation = classifyValidationWindow(
+    doksan.updated_at || null,
+    plannedDepartureAt,
+    policy.runtime_validation_window || null
+  );
 
   const payload = {
     status:result.status,
@@ -47,7 +83,8 @@ function main(){
       : 'Doksan realtime position + official KORAIL schedule + measured final access to destination',
     journey_destination:journeyProfile.destination || null,
     planned_departure_status:derivedPlan ? 'derived_from_schedule_plan' : 'unavailable',
-    planned_departure_at:derivedPlan && derivedPlan.planned_departure_at || null,
+    planned_departure_at:plannedDepartureAt,
+    operational_validation:operationalValidation,
     final_access_status:finalAccessMinutes == null ? 'missing_repository_evidence' : 'available',
     final_access_minutes:finalAccessMinutes,
     final_access_source:finalAccess.source || null,
