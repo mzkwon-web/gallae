@@ -1,9 +1,9 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-08-25T23:23:54+09:00",
-  "finished_at": "2026-08-25T23:23:58+09:00",
-  "duration_seconds": 4.06,
+  "started_at": "2026-08-25T23:25:59+09:00",
+  "finished_at": "2026-08-25T23:26:04+09:00",
+  "duration_seconds": 5.18,
   "subway": {
     "status": "ok",
     "arrival_count": 4,
@@ -55,16 +55,16 @@
         "btrainNo": "0704",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "전역 도착",
-        "arvlMsg3": "금천구청",
-        "arvlCd": "5",
+        "arvlMsg2": "독산 도착",
+        "arvlMsg3": "독산",
+        "arvlCd": "1",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 23:22:40",
+        "recptnDt": "2026-08-25 23:24:38",
         "statnFid": "1001080144",
         "statnTid": "1001080142",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "01001광운대0"
+        "ordkey": "01000광운대0"
       },
       {
         "subwayId": "1001",
@@ -74,16 +74,16 @@
         "btrainNo": "0510",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[7]번째 전역 (군포)",
-        "arvlMsg3": "군포",
+        "arvlMsg2": "[6]번째 전역 (금정)",
+        "arvlMsg3": "금정",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 23:22:40",
+        "recptnDt": "2026-08-25 23:24:38",
         "statnFid": "1001080144",
         "statnTid": "1001080142",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "02007청량리0"
+        "ordkey": "02006청량리0"
       },
       {
         "subwayId": "1001",
@@ -93,16 +93,16 @@
         "btrainNo": "0513",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "전역 도착",
-        "arvlMsg3": "가산디지털단지",
-        "arvlCd": "5",
+        "arvlMsg2": "독산 진입",
+        "arvlMsg3": "독산",
+        "arvlCd": "0",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 23:23:03",
+        "recptnDt": "2026-08-25 23:25:08",
         "statnFid": "1001080142",
         "statnTid": "1001080144",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "11001서동탄0"
+        "ordkey": "11000서동탄0"
       },
       {
         "subwayId": "1001",
@@ -116,7 +116,7 @@
         "arvlMsg3": "영등포",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 23:23:03",
+        "recptnDt": "2026-08-25 23:25:08",
         "statnFid": "1001080142",
         "statnTid": "1001080144",
         "statnId": "1001080143",
@@ -129,8 +129,14 @@
     "status": "ok",
     "source": "seoul-data-go-kr",
     "stage": "complete",
-    "arrival_count": 5,
-    "error": null
+    "arrival_count": 4,
+    "error": null,
+    "expected_st_id": "117900109",
+    "rejected_station_row_count": 1,
+    "received_station_ids": [
+      "117900109",
+      "217000534"
+    ]
   },
   "source_checks": {
     "seoul": {

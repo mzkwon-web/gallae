@@ -2,43 +2,43 @@
   "status": "ok",
   "station": "가산디지털단지",
   "line": "7호선",
-  "updated_at": "2026-08-25T23:23:54+09:00",
+  "updated_at": "2026-08-25T23:25:59+09:00",
   "arrivals": [
     {
       "destination": "도봉산",
       "direction": "상행",
       "train_line": "도봉산행 - 남구로방면",
-      "arrival_message": "7분 후 (천왕)",
-      "current_location": "천왕",
+      "arrival_message": "5분 후 (광명사거리)",
+      "current_location": "광명사거리",
       "train_no": "7392",
-      "received_at": "2026-08-25 23:23:08"
+      "received_at": "2026-08-25 23:25:11"
     },
     {
       "destination": "도봉산",
       "direction": "상행",
       "train_line": "도봉산행 - 남구로방면",
-      "arrival_message": "20분 후 (부천시청)",
-      "current_location": "부천시청",
+      "arrival_message": "18분 후 (춘의역)",
+      "current_location": "춘의역",
       "train_no": "7394",
-      "received_at": "2026-08-25 23:23:08"
+      "received_at": "2026-08-25 23:25:11"
     },
     {
       "destination": "온수",
       "direction": "하행",
       "train_line": "온수행 - 철산방면",
-      "arrival_message": "전역 도착",
-      "current_location": "남구로",
+      "arrival_message": "가산디지털단지 도착",
+      "current_location": "가산디지털단지",
       "train_no": "7399",
-      "received_at": "2026-08-25 23:22:58"
+      "received_at": "2026-08-25 23:25:21"
     },
     {
       "destination": "석남",
       "direction": "하행",
       "train_line": "석남행 - 철산방면",
-      "arrival_message": "9분 후 (신대방삼거리)",
-      "current_location": "신대방삼거리",
+      "arrival_message": "7분 후 (신풍)",
+      "current_location": "신풍",
       "train_no": "7401",
-      "received_at": "2026-08-25 23:22:58"
+      "received_at": "2026-08-25 23:25:21"
     }
   ]
 }

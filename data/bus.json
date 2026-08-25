@@ -4,27 +4,37 @@
   "stop_name": "롯데캐슬 정류장",
   "official_stop_name": "금천현대아파트.청소년문화의집",
   "ars_id": "18514",
-  "updated_at": "2026-08-25T23:23:54+09:00",
+  "expected_st_id": "117900109",
+  "updated_at": "2026-08-25T23:25:59+09:00",
   "arrivals": [
     {
+      "ars_id": "18514",
+      "st_id": "117900109",
+      "bus_route_id": "117900008",
       "route": "금천01",
       "first_message": "곧 도착",
-      "first_seconds": "33",
+      "first_seconds": "16",
       "first_stops": "29",
       "second_message": "2분후[2번째 전]",
       "destination": "금천현대아파트.청소년문화의집",
       "source": "seoul-data-go-kr"
     },
     {
+      "ars_id": "18514",
+      "st_id": "117900109",
+      "bus_route_id": "117900004",
       "route": "금천06",
-      "first_message": "2분후[2번째 전]",
-      "first_seconds": "132",
-      "first_stops": "7",
+      "first_message": "8분후[6번째 전]",
+      "first_seconds": "517",
+      "first_stops": "3",
       "second_message": "출발대기",
       "destination": "금천현대아파트.청소년문화의집",
       "source": "seoul-data-go-kr"
     },
     {
+      "ars_id": "18514",
+      "st_id": "117900109",
+      "bus_route_id": "117900007",
       "route": "금천07",
       "first_message": "운행종료",
       "first_seconds": "0",
@@ -34,6 +44,9 @@
       "source": "seoul-data-go-kr"
     },
     {
+      "ars_id": "18514",
+      "st_id": "117900109",
+      "bus_route_id": "117900005",
       "route": "금천08",
       "first_message": "회차대기",
       "first_seconds": "42",
@@ -41,16 +54,54 @@
       "second_message": "회차대기",
       "destination": "금천현대아파트.청소년문화의집",
       "source": "seoul-data-go-kr"
-    },
-    {
-      "route": "320안산",
-      "first_message": "20분후[16번째 전]",
-      "first_seconds": "1210",
-      "first_stops": "114",
-      "second_message": "51분후[36번째 전]",
-      "destination": "에스켐텍",
-      "source": "seoul-data-go-kr"
     }
   ],
+  "identity_diagnostics": [
+    {
+      "arsId": "18514",
+      "stId": "117900109",
+      "busRouteId": "117900008",
+      "rtNm": "금천01",
+      "stNm": "금천현대아파트.청소년문화의집"
+    },
+    {
+      "arsId": "18514",
+      "stId": "117900109",
+      "busRouteId": "117900004",
+      "rtNm": "금천06",
+      "stNm": "금천현대아파트.청소년문화의집"
+    },
+    {
+      "arsId": "18514",
+      "stId": "117900109",
+      "busRouteId": "117900007",
+      "rtNm": "금천07",
+      "stNm": "금천현대아파트.청소년문화의집"
+    },
+    {
+      "arsId": "18514",
+      "stId": "117900109",
+      "busRouteId": "117900005",
+      "rtNm": "금천08",
+      "stNm": "금천현대아파트.청소년문화의집"
+    },
+    {
+      "arsId": "18514",
+      "stId": "217000534",
+      "busRouteId": "217000013",
+      "rtNm": "320안산",
+      "stNm": "에스켐텍"
+    }
+  ],
+  "rejected_station_rows": [
+    {
+      "arsId": "18514",
+      "stId": "217000534",
+      "busRouteId": "217000013",
+      "rtNm": "320안산",
+      "stNm": "에스켐텍"
+    }
+  ],
+  "rejected_station_row_count": 1,
   "stage": "complete"
 }
