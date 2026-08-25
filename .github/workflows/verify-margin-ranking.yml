@@ -1,0 +1,85 @@
+name: Verify phase 2 margin ranking policy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'lib/rolling-eta.js'
+      - '.github/workflows/verify-margin-ranking.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify sufficient caution urgent ranking policy
+        run: |
+          node - <<'NODE'
+          require('./lib/rolling-eta.js');
+          const eta = globalThis.GallaeRollingETA;
+          const errors = [];
+
+          function expect(condition, message){
+            if(!condition) errors.push(message);
+          }
+
+          // Boundary contract: >=10 sufficient, >=3 caution, <3 urgent.
+          const deadline = '2026-08-25T14:00:00+09:00';
+          expect(eta.marginState('2026-08-25T13:50:00+09:00', deadline) === 'sufficient', '10-minute margin must be sufficient');
+          expect(eta.marginState('2026-08-25T13:57:00+09:00', deadline) === 'caution', '3-minute margin must be caution');
+          expect(eta.marginState('2026-08-25T13:57:01+09:00', deadline) === 'urgent', 'margin below 3 minutes must be urgent');
+          expect(eta.marginState('2026-08-25T14:01:00+09:00', deadline) === 'urgent', 'lateness must be urgent');
+
+          function candidate(id, finalEta, marginState, scores={}){
+            return {
+              id,
+              status:'ok',
+              final_eta:finalEta,
+              deadline_state: finalEta <= deadline ? 'deadline_met' : 'late',
+              margin_state:marginState,
+              transfer_score:Number(scores.transfer || 0),
+              stability_score:Number(scores.stability || 0),
+              preference_score:Number(scores.preference || 0),
+            };
+          }
+
+          // Sufficient: comfort/stability/preference remain fully effective.
+          const sufficientPreferred = candidate('preferred-sufficient','2026-08-25T13:48:00+09:00','sufficient',{preference:10});
+          const sufficientFast = candidate('fast-sufficient','2026-08-25T13:47:00+09:00','sufficient',{stability:3});
+          const sufficientRanked = eta.rankCandidates([sufficientFast, sufficientPreferred]);
+          expect(sufficientRanked[0]?.id === 'preferred-sufficient', 'sufficient state must preserve full preference weight');
+
+          // Caution: the same preference advantage is weakened to 25%; stability can overtake it.
+          const cautionPreferred = candidate('preferred-caution','2026-08-25T13:54:00+09:00','caution',{preference:10});
+          const cautionStable = candidate('stable-caution','2026-08-25T13:53:30+09:00','caution',{stability:3});
+          const cautionRanked = eta.rankCandidates([cautionPreferred, cautionStable]);
+          expect(cautionRanked[0]?.id === 'stable-caution', 'caution state must weaken preference weight enough for stability score 3 to beat preference score 10');
+
+          // Urgent: ETA/lateness dominates preference and stability.
+          const urgentPreferred = candidate('preferred-urgent','2026-08-25T13:59:30+09:00','urgent',{preference:100,stability:100,transfer:100});
+          const urgentFast = candidate('fast-urgent','2026-08-25T13:58:30+09:00','urgent',{});
+          const urgentRanked = eta.rankCandidates([urgentPreferred, urgentFast]);
+          expect(urgentRanked[0]?.id === 'fast-urgent', 'urgent state must rank the earlier ETA first regardless of preference/stability');
+
+          const verification = {
+            status: errors.length ? 'error' : 'ok',
+            errors,
+            boundaries:{
+              sufficient_at_minutes:10,
+              caution_at_minutes:3,
+              urgent_below_minutes:3,
+            },
+            sufficient:{winner:sufficientRanked[0]?.id || null, policy:'comfort/stability/preference preserved'},
+            caution:{winner:cautionRanked[0]?.id || null, preference_weight:0.25},
+            urgent:{winner:urgentRanked[0]?.id || null, policy:'minimize ETA/lateness'},
+            verified_at:new Date().toISOString(),
+          };
+          console.log(JSON.stringify(verification,null,2));
+          if(errors.length) process.exit(1);
+          NODE
