@@ -1,0 +1,118 @@
+name: Probe Gwangsa Gyeonggi bus realtime
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/probe-gwangsa-bus.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve stop 14057 and fetch live arrivals
+        env:
+          GYEONGGI_BUS_API_KEY: ${{ secrets.DATA_GO_KR_BUS_API_KEY }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          from datetime import datetime, timezone, timedelta
+          from pathlib import Path
+
+          kst = timezone(timedelta(hours=9))
+          now = datetime.now(kst).isoformat(timespec='seconds')
+          out = {
+              'status':'error',
+              'source':'gyeonggi_bus_api',
+              'stop_alias':'광사 정류장',
+              'official_stop_name':'광명사거리역.한진아파트',
+              'mobile_no':'14057',
+              'updated_at':now,
+              'station':None,
+              'arrivals':[],
+              'error':None,
+          }
+
+          def fetch_json(base, params):
+              key = (os.environ.get('GYEONGGI_BUS_API_KEY') or '').strip()
+              if not key:
+                  raise RuntimeError('GYEONGGI_BUS_API_KEY is missing')
+              params = dict(params)
+              params.update({'format':'json','serviceKey':urllib.parse.unquote(key)})
+              query = urllib.parse.urlencode(params, safe='%')
+              req = urllib.request.Request(base + '?' + query, headers={'User-Agent':'Mozilla/5.0 gallae-poc/1.0'})
+              with urllib.request.urlopen(req, timeout=25) as response:
+                  return json.loads(response.read().decode('utf-8', errors='replace'))
+
+          def response_parts(raw):
+              response = raw.get('response', {}) if isinstance(raw, dict) else {}
+              header = response.get('msgHeader', {}) if isinstance(response, dict) else {}
+              code = str(header.get('resultCode',''))
+              message = header.get('resultMessage') or header.get('resultMsg') or ''
+              if code not in ('0','00'):
+                  raise RuntimeError(f'GYEONGGI {code}: {message}')
+              body = response.get('msgBody', {}) if isinstance(response, dict) else {}
+              return body if isinstance(body, dict) else {}
+
+          try:
+              station_raw = fetch_json(
+                  'https://apis.data.go.kr/6410000/busstationservice/v2/getBusStationListv2',
+                  {'keyword':'14057'}
+              )
+              station_body = response_parts(station_raw)
+              stations = station_body.get('busStationList', [])
+              if isinstance(stations, dict):
+                  stations = [stations]
+              matches = [s for s in (stations or []) if str(s.get('mobileNo','')).strip() == '14057']
+              if not matches:
+                  raise RuntimeError('No exact Gyeonggi station match for mobileNo 14057')
+              station = matches[0]
+              station_id = str(station.get('stationId') or '').strip()
+              if not station_id:
+                  raise RuntimeError('Matched stop has no stationId')
+              out['station'] = {
+                  'stationId':station_id,
+                  'mobileNo':str(station.get('mobileNo') or ''),
+                  'stationName':station.get('stationName'),
+                  'regionName':station.get('regionName'),
+              }
+
+              arrival_raw = fetch_json(
+                  'https://apis.data.go.kr/6410000/busarrivalservice/v2/getBusArrivalListv2',
+                  {'stationId':station_id}
+              )
+              arrival_body = response_parts(arrival_raw)
+              arrivals = arrival_body.get('busArrivalList', [])
+              if isinstance(arrivals, dict):
+                  arrivals = [arrivals]
+              fields = [
+                  'routeId','routeName','routeTypeCd','routeDestId','routeDestName','flag','staOrder','turnSeq',
+                  'predictTime1','predictTimeSec1','locationNo1','stationNm1','stateCd1',
+                  'predictTime2','predictTimeSec2','locationNo2','stationNm2','stateCd2'
+              ]
+              out['arrivals'] = [{k:a.get(k) for k in fields if k in a} for a in (arrivals or [])]
+              out['status'] = 'ok'
+          except Exception as e:
+              out['error'] = str(e)
+
+          Path('probe-output').mkdir(exist_ok=True)
+          Path('probe-output/gwangsa-bus.json').write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding='utf-8')
+          print(json.dumps(out, ensure_ascii=False, indent=2))
+          if out['status'] != 'ok':
+              raise SystemExit(out['error'])
+          PY
+
+      - name: Upload probe artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gwangsa-bus-probe
+          path: probe-output/gwangsa-bus.json
+          if-no-files-found: error
