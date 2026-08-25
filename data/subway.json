@@ -2,43 +2,6 @@
   "status": "ok",
   "station": "가산디지털단지",
   "line": "7호선",
-  "updated_at": "2026-08-25T23:29:46+09:00",
-  "arrivals": [
-    {
-      "destination": "도봉산",
-      "direction": "상행",
-      "train_line": "도봉산행 - 남구로방면",
-      "arrival_message": "가산디지털단지 진입",
-      "current_location": "가산디지털단지",
-      "train_no": "7392",
-      "received_at": "2026-08-25 23:29:16"
-    },
-    {
-      "destination": "도봉산",
-      "direction": "상행",
-      "train_line": "도봉산행 - 남구로방면",
-      "arrival_message": "14분 후 (까치울)",
-      "current_location": "까치울",
-      "train_no": "7394",
-      "received_at": "2026-08-25 23:29:16"
-    },
-    {
-      "destination": "석남",
-      "direction": "하행",
-      "train_line": "석남행 - 철산방면",
-      "arrival_message": "3분 후 (대림)",
-      "current_location": "대림",
-      "train_no": "7401",
-      "received_at": "2026-08-25 23:29:06"
-    },
-    {
-      "destination": "온수",
-      "direction": "하행",
-      "train_line": "온수행 - 철산방면",
-      "arrival_message": "15분 후 (숭실대입구(살피재))",
-      "current_location": "숭실대입구(살피재)",
-      "train_no": "7403",
-      "received_at": "2026-08-25 23:29:06"
-    }
-  ]
+  "updated_at": "2026-08-26T01:26:20+09:00",
+  "arrivals": []
 }
