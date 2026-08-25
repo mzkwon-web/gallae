@@ -1,9 +1,9 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-08-25T09:44:00+09:00",
-  "finished_at": "2026-08-25T09:44:03+09:00",
-  "duration_seconds": 2.94,
+  "started_at": "2026-08-25T09:44:51+09:00",
+  "finished_at": "2026-08-25T09:44:55+09:00",
+  "duration_seconds": 3.74,
   "subway": {
     "status": "ok",
     "arrival_count": 4,
@@ -50,21 +50,21 @@
       {
         "subwayId": "1001",
         "updnLine": "상행",
-        "bstatnNm": "구로",
-        "trainLineNm": "구로행 - 가산디지털단지방면",
-        "btrainNo": "0624",
+        "bstatnNm": "영등포",
+        "trainLineNm": "영등포행 - 가산디지털단지방면",
+        "btrainNo": "7008",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[6]번째 전역 (금정)",
-        "arvlMsg3": "금정",
-        "arvlCd": "99",
+        "arvlMsg2": "전역 진입",
+        "arvlMsg3": "금천구청",
+        "arvlCd": "4",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 09:42:23",
+        "recptnDt": "2026-08-25 09:43:50",
         "statnFid": "1001080144",
         "statnTid": "1001080142",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "01006구로0"
+        "ordkey": "01001영등포0"
       },
       {
         "subwayId": "1001",
@@ -88,21 +88,21 @@
       {
         "subwayId": "1001",
         "updnLine": "상행",
-        "bstatnNm": "청량리",
-        "trainLineNm": "청량리행 - 가산디지털단지방면",
-        "btrainNo": "0436",
+        "bstatnNm": "구로",
+        "trainLineNm": "구로행 - 가산디지털단지방면",
+        "btrainNo": "0624",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[7]번째 전역 (군포)",
-        "arvlMsg3": "군포",
+        "arvlMsg2": "[5]번째 전역 (명학)",
+        "arvlMsg3": "명학",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 09:42:23",
+        "recptnDt": "2026-08-25 09:43:50",
         "statnFid": "1001080144",
         "statnTid": "1001080142",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "02007청량리0"
+        "ordkey": "02005구로0"
       },
       {
         "subwayId": "1001",
@@ -131,16 +131,16 @@
         "btrainNo": "0431",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "전역 도착",
-        "arvlMsg3": "가산디지털단지",
-        "arvlCd": "5",
+        "arvlMsg2": "독산 진입",
+        "arvlMsg3": "독산",
+        "arvlCd": "0",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 09:41:47",
+        "recptnDt": "2026-08-25 09:44:01",
         "statnFid": "1001080142",
         "statnTid": "1001080144",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "11001서동탄0"
+        "ordkey": "11000서동탄0"
       },
       {
         "subwayId": "1001",
@@ -173,7 +173,7 @@
         "arvlMsg3": "영등포",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 09:41:47",
+        "recptnDt": "2026-08-25 09:44:01",
         "statnFid": "1001080142",
         "statnTid": "1001080144",
         "statnId": "1001080143",
@@ -188,8 +188,8 @@
         "btrainNo": "1913",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[10]번째 전역 (서울)",
-        "arvlMsg3": "서울",
+        "arvlMsg2": "[9]번째 전역 (남영)",
+        "arvlMsg3": "남영",
         "arvlCd": "99",
         "subwayHeading": null,
         "recptnDt": "2026-08-25 09:35:55",
@@ -197,7 +197,7 @@
         "statnTid": "1001080144",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "12010천안0"
+        "ordkey": "12009천안0"
       }
     ]
   },
