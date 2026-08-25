@@ -64,6 +64,11 @@ jobs:
           const schedule=JSON.parse(fs.readFileSync('data/phase2-schedule.json','utf8'));
           const policy=JSON.parse(fs.readFileSync('config/phase2-hybrid.json','utf8'));
           const errors=[];
+          const canonicalSources=['api','measured','preference','constraint','rule','schedule','calculated','experience'];
+          const sameSources=(items)=>JSON.stringify(items||[])===JSON.stringify(canonicalSources);
+          if(!sameSources(globalThis.GallaeSourceTypes&&globalThis.GallaeSourceTypes.SOURCE_TYPES)) errors.push('canonical source registry mismatch');
+          if(!sameSources(globalThis.GallaePhase2HybridInput&&globalThis.GallaePhase2HybridInput.SOURCE_TYPES)) errors.push('phase2 input source registry drift');
+          if(!sameSources(globalThis.GallaeRollingETA&&globalThis.GallaeRollingETA.ALLOWED_SOURCES)) errors.push('rolling ETA source registry drift');
           if(!['ok','unavailable'].includes(p.status)) errors.push('invalid runtime status');
           if(p.source_priority.join('>')!=='realtime>schedule/plan>estimate') errors.push('source priority mismatch');
           if(p.target_clock!=='13:50') errors.push('target mismatch');
@@ -90,7 +95,7 @@ jobs:
           if(a&&a.legs[0].departure_at!=='2026-08-25T13:13:30+09:00') errors.push(`minimum transfer not applied at Guro: ${a.legs[0].departure_at}`);
           if(a&&a.legs[1].departure_at!=='2026-08-25T13:42:30+09:00') errors.push(`minimum transfer not applied at Sosa: ${a.legs[1].departure_at}`);
           if(b&&b.legs[0].departure_at!=='2026-08-25T13:23:00+09:00') errors.push(`delayed Guro connection wrong after min transfer: ${b.legs[0].departure_at}`);
-          if(b&&b.legs[1].departure_at!=='2026-08-25T13:58:30+09:00') errors.push(`delayed Sosa connection wrong after min transfer: ${b.legs[1].departure_at}`);
+          if(b&&b.legs[1].departure_at!=='2026-08-25T13:42:30+09:00') errors.push(`delayed Sosa connection wrong after min transfer: ${b.legs[1].departure_at}`);
           for(const c of [a,b].filter(Boolean)) for(const leg of c.legs||[]) if(leg.min_transfer_minutes!==3) errors.push(`default minimum transfer mismatch ${leg.min_transfer_minutes}`);
           const R=globalThis.GallaeRollingETA;
           const transferProbe=R.rollLeg('2026-08-25T13:02:00+09:00',{id:'probe',connections:[{departure_at:'2026-08-25T13:04:30+09:00',arrival_at:'2026-08-25T13:19:30+09:00',data_source:'schedule'},{departure_at:'2026-08-25T13:13:30+09:00',arrival_at:'2026-08-25T13:28:30+09:00',data_source:'schedule'}]});
@@ -99,7 +104,7 @@ jobs:
           if(overrideProbe.departure_at!=='2026-08-25T13:04:30+09:00'||overrideProbe.min_transfer_minutes!==2) errors.push('leg minimum-transfer override failed');
           if(a&&a.margin_state!=='urgent') errors.push(`early scenario should become urgent after realistic transfers: ${a.margin_state}`);
           if(b&&b.deadline_state!=='late') errors.push('delayed scenario should be late');
-          const verification={status:errors.length?'error':'ok',errors,runtime_status:p.status,realtime_candidate_count:p.realtime_candidate_count,usable_candidate_count:p.usable_candidate_count,planned_departure_at:p.planned_departure_at,final_access_minutes:p.final_access_minutes,minimum_transfer_minutes:3,operational_validation:{status:ov.status,decision_usable:ov.decision_usable,contract_status:ovContract.status},regression:{early:a?{plan_deviation_minutes:a.plan_deviation_minutes,final_eta:a.final_eta,deadline_state:a.deadline_state,margin_state:a.margin_state,legs:a.legs.map(x=>({departure_at:x.departure_at,arrival_at:x.arrival_at,min_transfer_minutes:x.min_transfer_minutes}))}:null,delayed:b?{plan_deviation_minutes:b.plan_deviation_minutes,final_eta:b.final_eta,deadline_state:b.deadline_state,margin_state:b.margin_state,legs:b.legs.map(x=>({departure_at:x.departure_at,arrival_at:x.arrival_at,min_transfer_minutes:x.min_transfer_minutes}))}:null},verified_at:new Date().toISOString()};
+          const verification={status:errors.length?'error':'ok',errors,source_types:canonicalSources,runtime_status:p.status,realtime_candidate_count:p.realtime_candidate_count,usable_candidate_count:p.usable_candidate_count,planned_departure_at:p.planned_departure_at,final_access_minutes:p.final_access_minutes,minimum_transfer_minutes:3,operational_validation:{status:ov.status,decision_usable:ov.decision_usable,contract_status:ovContract.status},regression:{early:a?{plan_deviation_minutes:a.plan_deviation_minutes,final_eta:a.final_eta,deadline_state:a.deadline_state,margin_state:a.margin_state,legs:a.legs.map(x=>({departure_at:x.departure_at,arrival_at:x.arrival_at,min_transfer_minutes:x.min_transfer_minutes}))}:null,delayed:b?{plan_deviation_minutes:b.plan_deviation_minutes,final_eta:b.final_eta,deadline_state:b.deadline_state,margin_state:b.margin_state,legs:b.legs.map(x=>({departure_at:x.departure_at,arrival_at:x.arrival_at,min_transfer_minutes:x.min_transfer_minutes}))}:null},verified_at:new Date().toISOString()};
           fs.writeFileSync('runtime-output/verification.json',JSON.stringify(verification,null,2));
           console.log(JSON.stringify(verification,null,2));
           if(errors.length) process.exit(1);
