@@ -1,9 +1,9 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-08-25T12:12:26+09:00",
-  "finished_at": "2026-08-25T12:12:29+09:00",
-  "duration_seconds": 3.22,
+  "started_at": "2026-08-25T12:14:50+09:00",
+  "finished_at": "2026-08-25T12:14:54+09:00",
+  "duration_seconds": 4.36,
   "subway": {
     "status": "ok",
     "arrival_count": 4,
@@ -55,16 +55,16 @@
         "btrainNo": "0448",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "전역 도착",
-        "arvlMsg3": "금천구청",
-        "arvlCd": "5",
+        "arvlMsg2": "독산 도착",
+        "arvlMsg3": "독산",
+        "arvlCd": "1",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 12:11:09",
+        "recptnDt": "2026-08-25 12:13:09",
         "statnFid": "1001080144",
         "statnTid": "1001080142",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "01001구로0"
+        "ordkey": "01000구로0"
       },
       {
         "subwayId": "1001",
@@ -93,16 +93,16 @@
         "btrainNo": "0450",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[5]번째 전역 (명학)",
-        "arvlMsg3": "명학",
+        "arvlMsg2": "[4]번째 전역 (안양)",
+        "arvlMsg3": "안양",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 12:11:09",
+        "recptnDt": "2026-08-25 12:13:09",
         "statnFid": "1001080144",
         "statnTid": "1001080142",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "02005광운대0"
+        "ordkey": "02004광운대0"
       },
       {
         "subwayId": "1001",
@@ -112,8 +112,8 @@
         "btrainNo": "1920",
         "btrainSttus": "급행",
         "barvlDt": "0",
-        "arvlMsg2": "[20]번째 전역 (서정리)",
-        "arvlMsg3": "서정리",
+        "arvlMsg2": "[17]번째 전역 (오산)",
+        "arvlMsg3": "오산",
         "arvlCd": "99",
         "subwayHeading": null,
         "recptnDt": "2026-08-25 12:07:41",
@@ -121,7 +121,7 @@
         "statnTid": "1001080142",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "02020청량리1"
+        "ordkey": "02017청량리1"
       },
       {
         "subwayId": "1001",
@@ -131,16 +131,16 @@
         "btrainNo": "0647",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "전역 도착",
-        "arvlMsg3": "가산디지털단지",
-        "arvlCd": "5",
+        "arvlMsg2": "독산 도착",
+        "arvlMsg3": "독산",
+        "arvlCd": "1",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 12:11:47",
+        "recptnDt": "2026-08-25 12:14:15",
         "statnFid": "1001080142",
         "statnTid": "1001080144",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "11001천안0"
+        "ordkey": "11000천안0"
       },
       {
         "subwayId": "1001",
@@ -164,21 +164,21 @@
       {
         "subwayId": "1001",
         "updnLine": "하행",
-        "bstatnNm": "서동탄",
-        "trainLineNm": "서동탄행 - 금천구청방면",
-        "btrainNo": "0449",
+        "bstatnNm": "광명",
+        "trainLineNm": "광명행 - 금천구청방면",
+        "btrainNo": "7017",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[7]번째 전역 (노량진)",
-        "arvlMsg3": "노량진",
+        "arvlMsg2": "[4]번째 전역 (영등포)",
+        "arvlMsg3": "영등포",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-25 12:11:47",
+        "recptnDt": "2026-08-25 12:14:15",
         "statnFid": "1001080142",
         "statnTid": "1001080144",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "12007서동탄0"
+        "ordkey": "12004광명0"
       },
       {
         "subwayId": "1001",
@@ -188,8 +188,8 @@
         "btrainNo": "1921",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[9]번째 전역 (남영)",
-        "arvlMsg3": "남영",
+        "arvlMsg2": "[8]번째 전역 (용산)",
+        "arvlMsg3": "용산",
         "arvlCd": "99",
         "subwayHeading": null,
         "recptnDt": "2026-08-25 12:03:39",
@@ -197,7 +197,7 @@
         "statnTid": "1001080144",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "12009신창0"
+        "ordkey": "12008신창0"
       }
     ]
   },
