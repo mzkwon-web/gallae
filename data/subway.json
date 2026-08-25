@@ -2,7 +2,7 @@
   "status": "ok",
   "station": "가산디지털단지",
   "line": "7호선",
-  "updated_at": "2026-08-25T10:02:28+09:00",
+  "updated_at": "2026-08-25T10:03:09+09:00",
   "arrivals": [
     {
       "destination": "도봉산",
@@ -11,7 +11,7 @@
       "arrival_message": "4분 후 (광명사거리)",
       "current_location": "광명사거리",
       "train_no": "7118",
-      "received_at": "2026-08-25 10:01:48"
+      "received_at": "2026-08-25 10:02:09"
     },
     {
       "destination": "장암",
@@ -20,25 +20,25 @@
       "arrival_message": "9분 후 (천왕)",
       "current_location": "천왕",
       "train_no": "7120",
-      "received_at": "2026-08-25 10:01:48"
+      "received_at": "2026-08-25 10:02:09"
     },
     {
       "destination": "온수",
       "direction": "하행",
       "train_line": "온수행 - 철산방면",
-      "arrival_message": "전역 도착",
+      "arrival_message": "전역 출발",
       "current_location": "남구로",
       "train_no": "7123",
-      "received_at": "2026-08-25 10:01:38"
+      "received_at": "2026-08-25 10:02:19"
     },
     {
       "destination": "석남",
       "direction": "하행",
       "train_line": "석남행 - 철산방면",
-      "arrival_message": "8분 후 (신풍)",
+      "arrival_message": "7분 후 (신풍)",
       "current_location": "신풍",
       "train_no": "7125",
-      "received_at": "2026-08-25 10:01:38"
+      "received_at": "2026-08-25 10:02:19"
     }
   ]
 }
