@@ -20,6 +20,7 @@ function classifyValidationWindow(snapshotAt, plannedDepartureAt, config){
   if(!Number.isFinite(snapshotMs) || !Number.isFinite(plannedMs) || !Number.isFinite(before) || !Number.isFinite(after)){
     return {
       status:'unavailable',
+      decision_usable:false,
       delta_from_planned_minutes:null,
       window_start_at:null,
       window_end_at:null,
@@ -32,6 +33,7 @@ function classifyValidationWindow(snapshotAt, plannedDepartureAt, config){
   const status = delta < -before ? 'before' : delta > after ? 'after' : 'within';
   return {
     status,
+    decision_usable:status === 'within',
     delta_from_planned_minutes:Math.round(delta * 10) / 10,
     window_start_at:start,
     window_end_at:end,
@@ -47,6 +49,11 @@ function validateOperationalWindow(value){
   const allowed = new Set(['before','within','after','unavailable']);
   if(!value || typeof value !== 'object') return ['operational_validation is missing'];
   if(!allowed.has(value.status)) errors.push('operational_validation.status is invalid');
+  if(typeof value.decision_usable !== 'boolean'){
+    errors.push('operational_validation.decision_usable is missing');
+  } else if(value.decision_usable !== (value.status === 'within')){
+    errors.push('operational_validation.decision_usable must be true only within the validation window');
+  }
 
   const evidence = Array.isArray(value.evidence) ? value.evidence : [];
   if(!evidence.length) errors.push('operational_validation.evidence is missing');
