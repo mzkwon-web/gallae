@@ -46,6 +46,11 @@
     "sosa_to_sincheon": "schedule_or_plan_fallback",
     "final_access": "measured_or_estimate"
   },
+  "runtime_validation_window": {
+    "before_planned_departure_minutes": 7.5,
+    "after_planned_departure_minutes": 12.5,
+    "purpose": "실제 출발 판단용 plan_deviation 검증창. 계획 독산 탑승 12:57:30 기준 약 12:50~13:10 관측을 우선 검증"
+  },
   "v0_1_non_goals": [
     "same_train_schedule_matching",
     "proving_operator_train_delay"
