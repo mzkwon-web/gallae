@@ -16,6 +16,10 @@
     }
   },
   "data_priority": ["realtime", "schedule", "plan", "estimate"],
+  "coverage": {
+    "guro_to_sosa": {"start":"10:30:30","end":"15:36:00","complete_within_window":true},
+    "sosa_to_sincheon": {"start":"10:43:30","end":"15:34:30","complete_within_window":true}
+  },
   "doksan_position_profile": {
     "service_type": "일반",
     "minutes_to_doksan_by_station": {
