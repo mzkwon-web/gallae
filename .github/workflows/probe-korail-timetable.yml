@@ -20,11 +20,11 @@ jobs:
       - name: Install workbook reader
         run: python -m pip install --disable-pip-version-check openpyxl
 
-      - name: Download current official timetables and inspect relevant rows
+      - name: Download current official timetables and extract rolling ETA inputs
         run: |
           python - <<'PY'
-          import json, re, urllib.request
-          from datetime import datetime, timezone, timedelta
+          import json, urllib.request
+          from datetime import datetime, timezone, timedelta, time
           from pathlib import Path
           from openpyxl import load_workbook
 
@@ -34,7 +34,7 @@ jobs:
               'line1_weekday': {
                   'title':'1호선(경부장항선, 경인경원선, 광명셔틀) 전동열차 평일 시각표(2026.2.28.부터)',
                   'file_id':'jfile/202602/23/2026022319c8818dfa4360.xlsx',
-                  'stations':['석수','금천구청','독산','가산디지털단지','구로'],
+                  'stations':['오산','명학','안양','관악','석수','금천구청','독산','가산디지털단지','구로','소사'],
               },
               'seohae_current': {
                   'title':'서해선 전동열차 시각표(2026.4.20.부터)',
@@ -45,17 +45,65 @@ jobs:
 
           def clean(v):
               if v is None: return None
+              if isinstance(v, time): return v.strftime('%H:%M:%S')
               if hasattr(v, 'isoformat'):
                   try: return v.isoformat()
                   except Exception: pass
               return str(v)
 
+          def norm(v):
+              return ''.join(str(v or '').split())
+
+          def find_station_row(ws, station):
+              target = norm(station)
+              for row in ws.iter_rows():
+                  for cell in row[:4]:
+                      if target and target in norm(cell.value):
+                          return row[0].row
+              return None
+
+          def row_values(ws, row_no):
+              if not row_no: return []
+              return [clean(c.value) for c in next(ws.iter_rows(min_row=row_no,max_row=row_no))]
+
+          def clock_seconds(v):
+              if not v: return None
+              text = str(v).strip()
+              try:
+                  h,m,s = [int(x) for x in text.split(':')]
+                  return h*3600+m*60+s
+              except Exception:
+                  return None
+
+          def paired_connections(ws, from_station, to_station):
+              fr = find_station_row(ws, from_station)
+              tr = find_station_row(ws, to_station)
+              if not fr or not tr: return []
+              fv, tv = row_values(ws,fr), row_values(ws,tr)
+              out=[]
+              for idx in range(min(len(fv),len(tv))):
+                  fs, ts = clock_seconds(fv[idx]), clock_seconds(tv[idx])
+                  if fs is None or ts is None: continue
+                  delta = ts-fs
+                  if delta < 0: delta += 86400
+                  if delta <= 0 or delta > 7200: continue
+                  out.append({
+                      'column':idx+1,
+                      'departure':fv[idx],
+                      'arrival':tv[idx],
+                      'travel_seconds':delta,
+                      'travel_minutes':round(delta/60,2),
+                  })
+              return out
+
           result = {
               'status':'ok',
               'source':'korail_official_timetable',
               'updated_at':datetime.now(kst).isoformat(timespec='seconds'),
-              'files':{}
+              'files':{},
+              'derived':{}
           }
+          workbooks={}
 
           for key, meta in files.items():
               url = 'https://www.korail.com/file/cubedata/COMMON/' + meta['file_id']
@@ -67,22 +115,38 @@ jobs:
                       data = r.read()
                   dest.write_bytes(data)
                   wb = load_workbook(dest, data_only=False, read_only=True)
+                  workbooks[key]=wb
                   entry['sheets'] = wb.sheetnames
                   targets = set(meta['stations'])
                   for ws in wb.worksheets:
-                      for row in ws.iter_rows():
-                          values = [clean(c.value) for c in row]
-                          text = ' | '.join(v or '' for v in values)
-                          hit = [s for s in targets if s in text]
-                          if not hit:
-                              continue
-                          row_no = row[0].row if row else None
-                          entry['matches'].append({'sheet':ws.title,'row':row_no,'stations':sorted(hit),'values':values})
+                      for station in sorted(targets):
+                          row_no=find_station_row(ws,station)
+                          if row_no:
+                              entry['matches'].append({'sheet':ws.title,'row':row_no,'station':station,'values':row_values(ws,row_no)})
                   entry['status']='ok'
               except Exception as e:
                   entry['error']=str(e)
                   result['status']='degraded'
               result['files'][key]=entry
+
+          if 'line1_weekday' in workbooks:
+              wb=workbooks['line1_weekday']
+              line1={}
+              for sheet in ['경부장항_평일_상','서동탄-의정부_평일_상','서울급행']:
+                  if sheet in wb.sheetnames:
+                      ws=wb[sheet]
+                      line1[sheet]={
+                          'seoksu_to_doksan':paired_connections(ws,'석수','독산'),
+                          'doksan_to_guro':paired_connections(ws,'독산','구로'),
+                      }
+              if '경인_평일_하' in wb.sheetnames:
+                  line1['guro_to_sosa']=paired_connections(wb['경인_평일_하'],'구로','소사')
+              result['derived']['line1']=line1
+
+          if 'seohae_current' in workbooks:
+              wb=workbooks['seohae_current']
+              if '서해선 하행(평일)' in wb.sheetnames:
+                  result['derived']['sosa_to_sincheon']=paired_connections(wb['서해선 하행(평일)'],'소사','신천')
 
           Path('probe-output/korail-timetable-probe.json').write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
           print(json.dumps(result, ensure_ascii=False, indent=2))
