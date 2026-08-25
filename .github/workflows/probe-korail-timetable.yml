@@ -23,7 +23,7 @@ jobs:
       - name: Download current official timetables and extract rolling ETA inputs
         run: |
           python - <<'PY'
-          import json, urllib.request
+          import json, time as time_mod, urllib.request
           from datetime import datetime, timezone, timedelta, time
           from pathlib import Path
           from openpyxl import load_workbook
@@ -54,11 +54,23 @@ jobs:
           def norm(v):
               return ''.join(str(v or '').split())
 
+          def fetch_bytes(url, attempts=3, timeout=40):
+              last=None
+              for i in range(attempts):
+                  try:
+                      req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 gallae-poc/1.0'})
+                      with urllib.request.urlopen(req,timeout=timeout) as r:
+                          return r.read()
+                  except Exception as e:
+                      last=e
+                      if i < attempts-1: time_mod.sleep(2*(i+1))
+              raise last
+
           def find_station_row(ws, station):
               target = norm(station)
               for row in ws.iter_rows():
                   for cell in row[:4]:
-                      if target and target in norm(cell.value):
+                      if target and target == norm(cell.value):
                           return row[0].row
               return None
 
@@ -110,10 +122,7 @@ jobs:
               dest = Path('probe-output') / f'{key}.xlsx'
               entry = {'title':meta['title'],'file_id':meta['file_id'],'url':url,'status':'error','sheets':[],'matches':[],'error':None}
               try:
-                  req = urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0 gallae-poc/1.0'})
-                  with urllib.request.urlopen(req, timeout=40) as r:
-                      data = r.read()
-                  dest.write_bytes(data)
+                  dest.write_bytes(fetch_bytes(url))
                   wb = load_workbook(dest, data_only=False, read_only=True)
                   workbooks[key]=wb
                   entry['sheets'] = wb.sheetnames
