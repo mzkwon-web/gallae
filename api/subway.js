@@ -33,19 +33,41 @@ export default async function handler(req, res) {
 
     const raw = await response.json();
 
+    const apiCode = raw?.code ?? raw?.errorMessage?.code ?? null;
+    const apiMessage =
+      raw?.message ??
+      raw?.errorMessage?.message ??
+      null;
+
+    // Seoul Open API uses INFO-200 when a valid query has no current rows.
+    // This is an unavailable realtime observation, not an upstream failure.
+    if (apiCode === 'INFO-200') {
+      return res.status(200).json({
+        status: 'ok',
+        station: stationName,
+        line: '7호선',
+        requested_at: requestedAt.toISOString(),
+        freshness_threshold_seconds: 180,
+        total_arrivals: 0,
+        fresh_arrival_count: 0,
+        realtime_usable: false,
+        reason: 'no_realtime_data',
+        api_code: apiCode,
+        api_message: apiMessage,
+        arrivals: []
+      });
+    }
+
     if (
       raw?.status === 500 ||
-      raw?.code === 'INFO-100' ||
-      raw?.errorMessage?.code !== 'INFO-000'
+      apiCode === 'INFO-100' ||
+      apiCode !== 'INFO-000'
     ) {
       return res.status(502).json({
         status: 'error',
         requested_at: requestedAt.toISOString(),
-        api_code: raw?.code ?? raw?.errorMessage?.code ?? null,
-        api_message:
-          raw?.message ??
-          raw?.errorMessage?.message ??
-          '서울 지하철 API 응답 오류'
+        api_code: apiCode,
+        api_message: apiMessage ?? '서울 지하철 API 응답 오류'
       });
     }
 
