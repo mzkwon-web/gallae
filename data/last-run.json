@@ -1,9 +1,9 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-08-26T16:08:50+09:00",
-  "finished_at": "2026-08-26T16:08:55+09:00",
-  "duration_seconds": 4.77,
+  "started_at": "2026-08-26T16:11:59+09:00",
+  "finished_at": "2026-08-26T16:12:03+09:00",
+  "duration_seconds": 4.24,
   "subway": {
     "status": "ok",
     "arrival_count": 4,
@@ -55,16 +55,16 @@
         "btrainNo": "0660",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[2]번째 전역 (석수)",
-        "arvlMsg3": "석수",
-        "arvlCd": "99",
+        "arvlMsg2": "전역 도착",
+        "arvlMsg3": "금천구청",
+        "arvlCd": "5",
         "subwayHeading": null,
-        "recptnDt": "2026-08-26 16:07:27",
+        "recptnDt": "2026-08-26 16:10:56",
         "statnFid": "1001080144",
         "statnTid": "1001080142",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "01002광운대0"
+        "ordkey": "01001광운대0"
       },
       {
         "subwayId": "1001",
@@ -74,16 +74,16 @@
         "btrainNo": "1932",
         "btrainSttus": "급행",
         "barvlDt": "0",
-        "arvlMsg2": "[6]번째 전역 (금정)",
-        "arvlMsg3": "금정",
+        "arvlMsg2": "[4]번째 전역 (안양)",
+        "arvlMsg3": "안양",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-26 16:06:06",
+        "recptnDt": "2026-08-26 16:10:25",
         "statnFid": "1001080144",
         "statnTid": "1001080142",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "01006청량리1"
+        "ordkey": "01004청량리1"
       },
       {
         "subwayId": "1001",
@@ -93,16 +93,16 @@
         "btrainNo": "0662",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[8]번째 전역 (당정)",
-        "arvlMsg3": "당정",
+        "arvlMsg2": "[7]번째 전역 (군포)",
+        "arvlMsg3": "군포",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-26 16:07:27",
+        "recptnDt": "2026-08-26 16:10:56",
         "statnFid": "1001080144",
         "statnTid": "1001080142",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "02008청량리0"
+        "ordkey": "02007청량리0"
       },
       {
         "subwayId": "1001",
@@ -116,7 +116,7 @@
         "arvlMsg3": "서정리",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-26 16:06:06",
+        "recptnDt": "2026-08-26 16:10:25",
         "statnFid": "1001080144",
         "statnTid": "1001080142",
         "statnId": "1001080143",
@@ -154,7 +154,7 @@
         "arvlMsg3": "구로",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-26 16:07:54",
+        "recptnDt": "2026-08-26 16:08:46",
         "statnFid": "1001080142",
         "statnTid": "1001080144",
         "statnId": "1001080143",
@@ -169,16 +169,16 @@
         "btrainNo": "7025",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[4]번째 전역 (영등포)",
-        "arvlMsg3": "영등포",
+        "arvlMsg2": "[3]번째 전역 (신도림)",
+        "arvlMsg3": "신도림",
         "arvlCd": "99",
         "subwayHeading": null,
-        "recptnDt": "2026-08-26 16:07:54",
+        "recptnDt": "2026-08-26 16:08:46",
         "statnFid": "1001080142",
         "statnTid": "1001080144",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "12004광명0"
+        "ordkey": "12003광명0"
       },
       {
         "subwayId": "1001",
@@ -188,8 +188,8 @@
         "btrainNo": "1937",
         "btrainSttus": "일반",
         "barvlDt": "0",
-        "arvlMsg2": "[14]번째 전역 (종로5가)",
-        "arvlMsg3": "종로5가",
+        "arvlMsg2": "[13]번째 전역 (종로3가)",
+        "arvlMsg3": "종로3가",
         "arvlCd": "99",
         "subwayHeading": null,
         "recptnDt": "2026-08-26 16:01:59",
@@ -197,7 +197,7 @@
         "statnTid": "1001080144",
         "statnId": "1001080143",
         "statnNm": "독산",
-        "ordkey": "12014천안0"
+        "ordkey": "12013천안0"
       }
     ]
   },
