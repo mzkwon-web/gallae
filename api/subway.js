@@ -37,49 +37,40 @@ export default async function handler(req, res) {
 
     const raw = await response.json();
 
-    const arrivals = (raw.realtimeArrivalList || [])
-      .filter(row => String(row.subwayId) === '1007')
-      .map(row => {
-        const observedAt = row.recptnDt || null;
+    const rows = Array.isArray(raw.realtimeArrivalList)
+      ? raw.realtimeArrivalList
+      : [];
 
-        let ageSeconds = null;
-
-        if (observedAt) {
-          const observedDate = new Date(
-            observedAt.replace(' ', 'T') + '+09:00'
-          );
-
-          ageSeconds = Math.max(
-            0,
-            Math.round((requestedAt.getTime() - observedDate.getTime()) / 1000)
-          );
-        }
-
-        return {
-          destination: row.bstatnNm,
-          direction: row.updnLine,
-          train_line: row.trainLineNm,
-          arrival_message: row.arvlMsg2,
-          current_location: row.arvlMsg3,
-          train_no: row.btrainNo,
-
-          observed_at: observedAt,
-          age_seconds: ageSeconds,
-
-          // 오늘은 3분을 임시 freshness 기준으로 사용
-          freshness:
-            ageSeconds !== null && ageSeconds <= 180
-              ? 'fresh'
-              : 'stale'
-        };
-      });
+    const diagnosticRows = rows.map(row => ({
+      subwayId: row.subwayId ?? null,
+      statnNm: row.statnNm ?? null,
+      updnLine: row.updnLine ?? null,
+      trainLineNm: row.trainLineNm ?? null,
+      bstatnNm: row.bstatnNm ?? null,
+      arvlMsg2: row.arvlMsg2 ?? null,
+      arvlMsg3: row.arvlMsg3 ?? null,
+      recptnDt: row.recptnDt ?? null,
+      btrainNo: row.btrainNo ?? null
+    }));
 
     return res.status(200).json({
       status: 'ok',
       station: stationName,
-      line: '7호선',
       requested_at: requestedAt.toISOString(),
-      arrivals
+
+      // 서울 API 자체 응답 정보
+      api_status: raw.RESULT || null,
+      total_rows: rows.length,
+
+      // 실제 subwayId 종류 확인
+      subway_ids: [...new Set(
+        rows
+          .map(row => String(row.subwayId ?? ''))
+          .filter(Boolean)
+      )],
+
+      // 진단용 최소 필드
+      diagnostic_rows: diagnosticRows
     });
 
   } catch (error) {
