@@ -88,7 +88,8 @@ jobs:
           Path('data/subway.json').write_text(json.dumps(subway_payload, ensure_ascii=False, indent=2), encoding='utf-8')
 
           # Doksan, Line 1: preserve actual fields used by phase-2 direction and position validation.
-          doksan_payload = {'status':'error','station':'독산','line':'1호선','updated_at':now,'observed_keys':[],'rows':[]}
+          FRESHNESS_THRESHOLD_SECONDS = 180
+          doksan_payload = {'status':'error','station':'독산','line':'1호선','updated_at':now,'requested_at':now,'freshness_threshold_seconds':FRESHNESS_THRESHOLD_SECONDS,'observed_keys':[],'rows':[]}
           if subway_key:
               try:
                   station = urllib.parse.quote('독산')
@@ -100,8 +101,25 @@ jobs:
                       'barvlDt','arvlMsg2','arvlMsg3','arvlCd','subwayHeading','recptnDt','statnFid','statnTid',
                       'statnId','statnNm','ordkey'
                   ]
-                  compact = [{k:r.get(k) for k in fields if k in r} for r in rows]
-                  doksan_payload.update(status='ok', observed_keys=sorted({k for r in rows for k in r.keys()}), rows=compact, row_count=len(rows))
+                  requested_dt = datetime.now(kst)
+                  compact = []
+                  for r in rows:
+                      item = {k:r.get(k) for k in fields if k in r}
+                      observed_at = r.get('recptnDt')
+                      age_seconds = None
+                      try:
+                          observed_dt = datetime.strptime(observed_at, '%Y-%m-%d %H:%M:%S').replace(tzinfo=kst)
+                          age_seconds = max(0, round((requested_dt-observed_dt).total_seconds()))
+                      except Exception:
+                          pass
+                      usable = age_seconds is not None and age_seconds <= FRESHNESS_THRESHOLD_SECONDS
+                      item.update(observed_at=observed_at, age=age_seconds, age_seconds=age_seconds,
+                                  freshness='fresh' if usable else 'stale', realtime_usable=usable)
+                      compact.append(item)
+                  fresh_count = sum(1 for r in compact if r.get('realtime_usable'))
+                  doksan_payload.update(status='ok', requested_at=requested_dt.isoformat(timespec='seconds'),
+                      observed_keys=sorted({k for r in rows for k in r.keys()}), rows=compact, row_count=len(rows),
+                      total_arrivals=len(compact), fresh_arrival_count=fresh_count, realtime_usable=fresh_count > 0)
               except Exception as e:
                   doksan_payload['error'] = str(e)
           else:
