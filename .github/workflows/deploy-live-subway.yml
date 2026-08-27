@@ -173,8 +173,20 @@ jobs:
                   raise RuntimeError(f'No rows matched verified station identity stId={EXPECTED_ST_ID}, stNm={EXPECTED_ST_NAME}')
 
               arrivals = []
+              route_mapping = {
+                  # User-verified field-test mapping: Geumcheon 07 from this
+                  # verified stop is the home -> Gasan access candidate.
+                  '117900007': {
+                      'route_targets':['gasan7'],
+                      'journey_directions':['outbound'],
+                      'mapping_source':'experience',
+                      'mapping_status':'provisional',
+                      'verification_required':True,
+                      'mapping_evidence':'사용자가 확인한 금천07의 가산디지털단지역 인근 접근 경로. 공식 노선·정류장 순서·운행 방향 검증 후 교체 필요'
+                  }
+              }
               for r in accepted:
-                  arrivals.append({
+                  arrival = {
                       'ars_id': r.get('arsId'),
                       'st_id': r.get('stId'),
                       'bus_route_id': r.get('busRouteId'),
@@ -185,7 +197,9 @@ jobs:
                       'second_message': r.get('arrmsg2') or '',
                       'destination': r.get('stNm') or '',
                       'source':'seoul-data-go-kr',
-                  })
+                  }
+                  arrival.update(route_mapping.get(str(r.get('busRouteId') or ''), {}))
+                  arrivals.append(arrival)
               rejected_identities = [{k:r.get(k) for k in ('arsId','stId','busRouteId','rtNm','stNm')} for r in rejected]
               return arrivals, identity_diagnostics, rejected_identities
 
