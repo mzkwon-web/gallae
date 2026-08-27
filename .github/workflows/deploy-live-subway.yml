@@ -88,7 +88,7 @@ jobs:
           Path('data/subway.json').write_text(json.dumps(subway_payload, ensure_ascii=False, indent=2), encoding='utf-8')
 
           # Doksan, Line 1: preserve actual fields used by phase-2 direction and position validation.
-          FRESHNESS_THRESHOLD_SECONDS = 180
+          FRESHNESS_THRESHOLD_SECONDS = 60
           doksan_payload = {'status':'error','station':'독산','line':'1호선','updated_at':now,'requested_at':now,'freshness_threshold_seconds':FRESHNESS_THRESHOLD_SECONDS,'observed_keys':[],'rows':[]}
           if subway_key:
               try:
