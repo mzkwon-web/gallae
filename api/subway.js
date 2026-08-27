@@ -47,7 +47,7 @@ export default async function handler(req, res) {
         station: stationName,
         line: '7호선',
         requested_at: requestedAt.toISOString(),
-        freshness_threshold_seconds: 180,
+        freshness_threshold_seconds: 60,
         total_arrivals: 0,
         fresh_arrival_count: 0,
         realtime_usable: false,
@@ -97,7 +97,7 @@ export default async function handler(req, res) {
 
         const isFresh =
           ageSeconds !== null &&
-          ageSeconds <= 180;
+          ageSeconds <= 60;
 
         return {
           subway_id: row.subwayId ?? null,
@@ -136,7 +136,7 @@ export default async function handler(req, res) {
 
       requested_at: requestedAt.toISOString(),
 
-      freshness_threshold_seconds: 180,
+      freshness_threshold_seconds: 60,
 
       total_arrivals: arrivals.length,
       fresh_arrival_count: freshArrivals.length,
