@@ -39,7 +39,7 @@ jobs:
               'seohae_current': {
                   'title':'서해선 전동열차 시각표(2026.4.20.부터)',
                   'file_id':'jfile/202604/16/2026041619d9411e417190.xlsx',
-                  'stations':['소사','신천'],
+                  'stations':['부천종','소사','신천'],
               },
           }
 
@@ -155,7 +155,9 @@ jobs:
           if 'seohae_current' in workbooks:
               wb=workbooks['seohae_current']
               if '서해선 하행(평일)' in wb.sheetnames:
-                  result['derived']['sosa_to_sincheon']=paired_connections(wb['서해선 하행(평일)'],'소사','신천')
+                  ws=wb['서해선 하행(평일)']
+                  result['derived']['sosa_to_sincheon']=paired_connections(ws,'소사','신천')
+                  result['derived']['bucheon_stadium_to_sincheon']=paired_connections(ws,'부천종','신천')
 
           Path('probe-output/korail-timetable-probe.json').write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
           print(json.dumps(result, ensure_ascii=False, indent=2))
