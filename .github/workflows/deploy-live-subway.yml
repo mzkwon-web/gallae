@@ -126,12 +126,12 @@ jobs:
               doksan_payload['error'] = 'SEOUL_SUBWAY_API_KEY is missing'
           Path('data/doksan-line1.json').write_text(json.dumps(doksan_payload, ensure_ascii=False, indent=2), encoding='utf-8')
 
-          # Seoul-only bus source. arsId=18514 is NOT globally unique: actual probe showed
-          # Seoul stId=117900109 and Ansan stId=217000534 share the same arsId.
-          # Filter by verified station identity, never by route name, and preserve all item identities for diagnosis.
-          EXPECTED_ARS_ID = '18514'
-          EXPECTED_ST_ID = '117900109'
-          EXPECTED_ST_NAME = '금천현대아파트.청소년문화의집'
+          # Official Seoul route-order data (2026-08-04) confirms Geumcheon 07:
+          # seq 35 Gasan Digital Complex Stn Exit 3 -> seq 41 Geumcheon Hyundai Apt.
+          # Query the boarding stop and filter by its exact Seoul station identity.
+          EXPECTED_ARS_ID = '18603'
+          EXPECTED_ST_ID = '117900218'
+          EXPECTED_ST_NAME = '가산디지털단지역3번출구'
 
           def fetch_seoul_bus(ars_id=EXPECTED_ARS_ID):
               key = os.environ.get('DATA_GO_KR_BUS_API_KEY')
@@ -174,15 +174,17 @@ jobs:
 
               arrivals = []
               route_mapping = {
-                  # User-verified field-test mapping: Geumcheon 07 from this
-                  # verified stop is the home -> Gasan access candidate.
                   '117900007': {
                       'route_targets':['gasan7'],
-                      'journey_directions':['outbound'],
-                      'mapping_source':'experience',
-                      'mapping_status':'provisional',
-                      'verification_required':True,
-                      'mapping_evidence':'사용자가 확인한 금천07의 가산디지털단지역 인근 접근 경로. 공식 노선·정류장 순서·운행 방향 검증 후 교체 필요'
+                      'journey_directions':['inbound'],
+                      'mapping_source':'seoul_official_route_stop_order_20260804',
+                      'mapping_status':'verified',
+                      'verification_required':False,
+                      'boarding_ars_id':'18603',
+                      'boarding_sequence':35,
+                      'alighting_ars_id':'18859',
+                      'alighting_sequence':41,
+                      'mapping_evidence':'서울시 공식 노선별 정류소 자료: 가산디지털단지역3번출구(35)에서 금천현대아파트.청소년문화의집(41) 순방향'
                   }
               }
               for r in accepted:
@@ -343,7 +345,7 @@ jobs:
               checks['bus_expected_st_id'] = expected
               checks['bus_rejected_station_row_count'] = bus.get('rejected_station_row_count',0)
               checks['bus_received_station_ids'] = sorted({str(x.get('stId') or '') for x in diagnostics if x.get('stId')})
-              identity_ok = expected == '117900109' and all(str(x.get('st_id') or '') == expected for x in accepted) and all(all(k in x for k in required_identity) for x in diagnostics)
+              identity_ok = expected == '117900218' and all(str(x.get('st_id') or '') == expected for x in accepted) and all(all(k in x for k in required_identity) for x in diagnostics)
               checks['bus_station_identity'] = 'ok' if identity_ok else 'error'
               if not identity_ok: errors.append('bus station identity filter/diagnostics contract failed')
               contaminated = [x for x in accepted if str(x.get('st_id') or '') != expected or str(x.get('destination') or '') != bus.get('official_stop_name')]

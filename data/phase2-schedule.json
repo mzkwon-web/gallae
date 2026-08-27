@@ -19,7 +19,8 @@
   "coverage": {
     "guro_to_sosa": {"start":"10:30:30","end":"15:36:00","complete_within_window":true},
     "sosa_to_sincheon": {"start":"10:43:30","end":"15:34:30","complete_within_window":true},
-    "bucheon_stadium_to_sincheon": {"start":"10:08:00","end":"16:03:30","complete_within_window":true}
+    "bucheon_stadium_to_sincheon": {"start":"10:08:00","end":"16:03:30","complete_within_window":true},
+    "sincheon_to_bucheon_stadium": {"start":"17:08:30","end":"23:56:30","complete_within_window":true}
   },
   "doksan_position_profile": {
     "service_type": "일반",
@@ -127,5 +128,39 @@
     {"departure":"15:22:00","arrival":"15:34:30","data_source":"schedule"},
     {"departure":"15:38:00","arrival":"15:50:30","data_source":"schedule"},
     {"departure":"15:51:00","arrival":"16:03:30","data_source":"schedule"}
+  ],
+  "sincheon_to_bucheon_stadium": [
+    {"departure":"17:08:30","arrival":"17:21:00","data_source":"schedule","column":56},
+    {"departure":"17:17:30","arrival":"17:30:00","data_source":"schedule","column":57},
+    {"departure":"17:26:30","arrival":"17:39:00","data_source":"schedule","column":58},
+    {"departure":"17:36:30","arrival":"17:49:00","data_source":"schedule","column":59},
+    {"departure":"17:47:30","arrival":"18:00:00","data_source":"schedule","column":60},
+    {"departure":"17:56:30","arrival":"18:09:00","data_source":"schedule","column":61},
+    {"departure":"18:06:30","arrival":"18:19:00","data_source":"schedule","column":62},
+    {"departure":"18:16:30","arrival":"18:29:00","data_source":"schedule","column":63},
+    {"departure":"18:26:30","arrival":"18:39:00","data_source":"schedule","column":64},
+    {"departure":"18:36:30","arrival":"18:49:00","data_source":"schedule","column":65},
+    {"departure":"18:46:30","arrival":"18:59:00","data_source":"schedule","column":66},
+    {"departure":"18:59:30","arrival":"19:12:00","data_source":"schedule","column":67},
+    {"departure":"19:09:30","arrival":"19:22:00","data_source":"schedule","column":68},
+    {"departure":"19:23:30","arrival":"19:36:00","data_source":"schedule","column":69},
+    {"departure":"19:36:30","arrival":"19:49:00","data_source":"schedule","column":70},
+    {"departure":"19:50:30","arrival":"20:03:00","data_source":"schedule","column":71},
+    {"departure":"20:03:30","arrival":"20:16:00","data_source":"schedule","column":72},
+    {"departure":"20:20:30","arrival":"20:33:00","data_source":"schedule","column":73},
+    {"departure":"20:40:30","arrival":"20:53:00","data_source":"schedule","column":74},
+    {"departure":"20:51:30","arrival":"21:04:00","data_source":"schedule","column":75},
+    {"departure":"21:06:30","arrival":"21:19:00","data_source":"schedule","column":76},
+    {"departure":"21:21:30","arrival":"21:34:00","data_source":"schedule","column":77},
+    {"departure":"21:36:30","arrival":"21:49:00","data_source":"schedule","column":78},
+    {"departure":"21:51:30","arrival":"22:04:00","data_source":"schedule","column":79},
+    {"departure":"22:06:30","arrival":"22:19:00","data_source":"schedule","column":80},
+    {"departure":"22:21:30","arrival":"22:34:00","data_source":"schedule","column":81},
+    {"departure":"22:36:30","arrival":"22:49:00","data_source":"schedule","column":82},
+    {"departure":"22:51:30","arrival":"23:04:00","data_source":"schedule","column":83},
+    {"departure":"23:05:30","arrival":"23:18:00","data_source":"schedule","column":84},
+    {"departure":"23:21:30","arrival":"23:34:00","data_source":"schedule","column":85},
+    {"departure":"23:43:30","arrival":"23:56:00","data_source":"schedule","column":86},
+    {"departure":"23:56:30","arrival":"00:09:00","data_source":"schedule","column":87}
   ]
 }
