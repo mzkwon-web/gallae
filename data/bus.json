@@ -2,116 +2,48 @@
   "status": "ok",
   "source": "seoul-data-go-kr",
   "stop_name": "롯데캐슬 정류장",
-  "official_stop_name": "금천현대아파트.청소년문화의집",
-  "ars_id": "18514",
-  "expected_st_id": "117900109",
-  "updated_at": "2026-08-27T19:54:55+09:00",
+  "official_stop_name": "가산디지털단지역3번출구",
+  "ars_id": "18603",
+  "expected_st_id": "117900218",
+  "updated_at": "2026-08-27T20:43:17+09:00",
   "arrivals": [
     {
-      "ars_id": "18514",
-      "st_id": "117900109",
-      "bus_route_id": "117900008",
-      "route": "금천01",
-      "first_message": "곧 도착",
-      "first_seconds": "70",
-      "first_stops": "29",
-      "second_message": "7분후[4번째 전]",
-      "destination": "금천현대아파트.청소년문화의집",
-      "source": "seoul-data-go-kr"
-    },
-    {
-      "ars_id": "18514",
-      "st_id": "117900109",
-      "bus_route_id": "117900004",
-      "route": "금천06",
-      "first_message": "5분후[3번째 전]",
-      "first_seconds": "304",
-      "first_stops": "6",
-      "second_message": "출발대기",
-      "destination": "금천현대아파트.청소년문화의집",
-      "source": "seoul-data-go-kr"
-    },
-    {
-      "ars_id": "18514",
-      "st_id": "117900109",
+      "ars_id": "18603",
+      "st_id": "117900218",
       "bus_route_id": "117900007",
       "route": "금천07",
-      "first_message": "5분후[4번째 전]",
-      "first_seconds": "354",
-      "first_stops": "5",
-      "second_message": "출발대기",
-      "destination": "금천현대아파트.청소년문화의집",
+      "first_message": "19분후[9번째 전]",
+      "first_seconds": "1161",
+      "first_stops": "26",
+      "second_message": "35분후[18번째 전]",
+      "destination": "가산디지털단지역3번출구",
       "source": "seoul-data-go-kr",
       "route_targets": [
         "gasan7"
       ],
       "journey_directions": [
-        "outbound"
+        "inbound"
       ],
-      "mapping_source": "experience",
-      "mapping_status": "provisional",
-      "verification_required": true,
-      "mapping_evidence": "사용자가 확인한 금천07의 가산디지털단지역 인근 접근 경로. 공식 노선·정류장 순서·운행 방향 검증 후 교체 필요"
-    },
-    {
-      "ars_id": "18514",
-      "st_id": "117900109",
-      "bus_route_id": "117900005",
-      "route": "금천08",
-      "first_message": "회차대기",
-      "first_seconds": "41",
-      "first_stops": "25",
-      "second_message": "회차대기",
-      "destination": "금천현대아파트.청소년문화의집",
-      "source": "seoul-data-go-kr"
+      "mapping_source": "seoul_official_route_stop_order_20260804",
+      "mapping_status": "verified",
+      "verification_required": false,
+      "boarding_ars_id": "18603",
+      "boarding_sequence": 35,
+      "alighting_ars_id": "18859",
+      "alighting_sequence": 41,
+      "mapping_evidence": "서울시 공식 노선별 정류소 자료: 가산디지털단지역3번출구(35)에서 금천현대아파트.청소년문화의집(41) 순방향"
     }
   ],
   "identity_diagnostics": [
     {
-      "arsId": "18514",
-      "stId": "117900109",
-      "busRouteId": "117900008",
-      "rtNm": "금천01",
-      "stNm": "금천현대아파트.청소년문화의집"
-    },
-    {
-      "arsId": "18514",
-      "stId": "117900109",
-      "busRouteId": "117900004",
-      "rtNm": "금천06",
-      "stNm": "금천현대아파트.청소년문화의집"
-    },
-    {
-      "arsId": "18514",
-      "stId": "117900109",
+      "arsId": "18603",
+      "stId": "117900218",
       "busRouteId": "117900007",
       "rtNm": "금천07",
-      "stNm": "금천현대아파트.청소년문화의집"
-    },
-    {
-      "arsId": "18514",
-      "stId": "117900109",
-      "busRouteId": "117900005",
-      "rtNm": "금천08",
-      "stNm": "금천현대아파트.청소년문화의집"
-    },
-    {
-      "arsId": "18514",
-      "stId": "217000534",
-      "busRouteId": "217000013",
-      "rtNm": "320안산",
-      "stNm": "에스켐텍"
+      "stNm": "가산디지털단지역3번출구"
     }
   ],
-  "rejected_station_rows": [
-    {
-      "arsId": "18514",
-      "stId": "217000534",
-      "busRouteId": "217000013",
-      "rtNm": "320안산",
-      "stNm": "에스켐텍"
-    }
-  ],
-  "rejected_station_row_count": 1,
+  "rejected_station_rows": [],
+  "rejected_station_row_count": 0,
   "stage": "complete"
 }
