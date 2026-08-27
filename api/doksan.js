@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   if (!key) return res.status(500).json({status:'error', requested_at:requestedAt.toISOString(), error:'SEOUL_SUBWAY_API_KEY is missing'});
 
   const stationName = '독산';
-  const url = `http://swopenapi.seoul.go.kr/api/subway/${key}/json/realtimeStationArrival/0/50/${encodeURIComponent(stationName)}`;
+  const url = `http://swopenapi.seoul.go.kr/api/subway/${key}/json/realtimeStationArrival/0/30/${encodeURIComponent(stationName)}`;
   try {
     const response = await fetch(url, {cache:'no-store'});
     const raw = await response.json();
