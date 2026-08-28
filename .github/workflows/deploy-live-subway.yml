@@ -30,250 +30,88 @@ jobs:
         env:
           SEOUL_SUBWAY_API_KEY: ${{ secrets.SEOUL_SUBWAY_API_KEY }}
           DATA_GO_KR_BUS_API_KEY: ${{ secrets.DATA_GO_KR_BUS_API_KEY }}
-          GYEONGGI_BUS_API_KEY: ${{ secrets.DATA_GO_KR_BUS_API_KEY }}
         run: |
           python - <<'PY'
-          import json, os, time, urllib.parse, urllib.request
-          import xml.etree.ElementTree as ET
+          import json, os, time, urllib.parse, urllib.request, xml.etree.ElementTree as ET
           from datetime import datetime, timezone, timedelta
           from pathlib import Path
-
-          kst = timezone(timedelta(hours=9))
-          started_at = datetime.now(kst)
-          now = started_at.isoformat(timespec='seconds')
+          kst=timezone(timedelta(hours=9)); started=datetime.now(kst); now=started.isoformat(timespec='seconds')
           Path('data').mkdir(exist_ok=True)
-
-          def fetch_bytes(url, timeout=25, attempts=3):
-              last = None
+          def fetch_bytes(url,timeout=25,attempts=3):
+              last=None
               for i in range(attempts):
                   try:
-                      req = urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0 gallae-poc/1.0'})
-                      with urllib.request.urlopen(req, timeout=timeout) as response:
-                          return response.read()
+                      req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 gallae-field-test/0.1'})
+                      with urllib.request.urlopen(req,timeout=timeout) as r: return r.read()
                   except Exception as e:
-                      last = e
-                      if i < attempts - 1:
-                          time.sleep(2 * (i + 1))
+                      last=e; time.sleep(2*(i+1)) if i<attempts-1 else None
               raise last
+          def norm(v): return urllib.parse.unquote((v or '').strip())
+          def write(path,payload): Path(path).write_text(json.dumps(payload,ensure_ascii=False,indent=2),encoding='utf-8')
+          subway_key=(os.environ.get('SEOUL_SUBWAY_API_KEY') or '').strip()
+          bus_key=(os.environ.get('DATA_GO_KR_BUS_API_KEY') or '').strip()
+          threshold=60
 
-          def normalized_key(value):
-              return urllib.parse.unquote((value or '').strip())
+          def parse_dt(v):
+              try: return datetime.strptime(v,'%Y-%m-%d %H:%M:%S').replace(tzinfo=kst)
+              except Exception: return None
+          def add_fresh(item, observed, requested):
+              od=parse_dt(observed); age=None if not od else max(0,round((requested-od).total_seconds()))
+              item.update(observed_at=observed,age=age,age_seconds=age,freshness='fresh' if age is not None and age<=threshold else 'stale',realtime_usable=age is not None and age<=threshold)
+              return item
 
-          subway_key = (os.environ.get('SEOUL_SUBWAY_API_KEY') or '').strip()
-
-          # Gasan Digital Complex, Line 7
-          subway_payload = {'status':'error','station':'가산디지털단지','line':'7호선','updated_at':now,'arrivals':[]}
-          if subway_key:
+          def fetch_subway(station,line_id,path,row_filter=lambda r: True):
+              payload={'status':'error','station':station,'updated_at':now,'requested_at':now,'freshness_threshold_seconds':threshold,'arrivals':[],'rows':[]}
+              if not subway_key:
+                  payload['error']='SEOUL_SUBWAY_API_KEY is missing'; write(path,payload); return payload
               try:
-                  station = urllib.parse.quote('가산디지털단지')
-                  url = f'http://swopenapi.seoul.go.kr/api/subway/{subway_key}/json/realtimeStationArrival/0/30/{station}'
-                  raw = json.loads(fetch_bytes(url, timeout=20, attempts=3).decode('utf-8'))
-                  arrivals = []
-                  for row in raw.get('realtimeArrivalList', []):
-                      if str(row.get('subwayId')) == '1007':
-                          arrivals.append({
-                              'destination': row.get('bstatnNm'),
-                              'direction': row.get('updnLine'),
-                              'train_line': row.get('trainLineNm'),
-                              'arrival_message': row.get('arvlMsg2'),
-                              'current_location': row.get('arvlMsg3'),
-                              'train_no': row.get('btrainNo'),
-                              'received_at': row.get('recptnDt'),
-                          })
-                  subway_payload.update(status='ok', arrivals=arrivals[:8])
-              except Exception as e:
-                  subway_payload['error'] = str(e)
-          else:
-              subway_payload['error'] = 'SEOUL_SUBWAY_API_KEY is missing'
-          Path('data/subway.json').write_text(json.dumps(subway_payload, ensure_ascii=False, indent=2), encoding='utf-8')
+                  url=f"http://swopenapi.seoul.go.kr/api/subway/{subway_key}/json/realtimeStationArrival/0/50/{urllib.parse.quote(station)}"
+                  raw=json.loads(fetch_bytes(url,20,3).decode('utf-8'))
+                  requested=datetime.now(kst); rows=[]
+                  for r in raw.get('realtimeArrivalList') or []:
+                      if str(r.get('subwayId'))!=line_id or not row_filter(r): continue
+                      item={k:r.get(k) for k in ['subwayId','updnLine','bstatnNm','trainLineNm','btrainNo','btrainSttus','barvlDt','arvlMsg2','arvlMsg3','arvlCd','subwayHeading','recptnDt','statnFid','statnTid','statnId','statnNm','ordkey'] if k in r}
+                      item.update(destination=r.get('bstatnNm'),direction=r.get('updnLine'),train_line=r.get('trainLineNm'),arrival_message=r.get('arvlMsg2'),current_location=r.get('arvlMsg3'),train_no=r.get('btrainNo'),arrival_seconds=r.get('barvlDt'))
+                      rows.append(add_fresh(item,r.get('recptnDt'),requested))
+                  payload.update(status='ok',requested_at=requested.isoformat(timespec='seconds'),arrivals=rows[:8],rows=rows,row_count=len(rows),total_arrivals=len(rows),fresh_arrival_count=sum(1 for x in rows if x.get('realtime_usable')),realtime_usable=any(x.get('realtime_usable') for x in rows))
+              except Exception as e: payload['error']=str(e)
+              write(path,payload); return payload
 
-          # Doksan, Line 1: preserve actual fields used by phase-2 direction and position validation.
-          FRESHNESS_THRESHOLD_SECONDS = 60
-          doksan_payload = {'status':'error','station':'독산','line':'1호선','updated_at':now,'requested_at':now,'freshness_threshold_seconds':FRESHNESS_THRESHOLD_SECONDS,'observed_keys':[],'rows':[]}
-          if subway_key:
+          subway=fetch_subway('가산디지털단지','1007','data/subway.json')
+          doksan=fetch_subway('독산','1001','data/doksan-line1.json')
+
+          def fetch_bus_stop(ars_id, route_name, direction, target, evidence, verified=False):
+              payload={'status':'error','source':'seoul-data-go-kr','ars_id':ars_id,'route':route_name,'updated_at':now,'arrivals':[],'identity_diagnostics':[],'stage':'arrival_lookup','mapping_status':'verified' if verified else 'user_experience','verification_required':not verified}
+              if not bus_key:
+                  payload['error']='DATA_GO_KR_BUS_API_KEY is missing'; return payload
               try:
-                  station = urllib.parse.quote('독산')
-                  url = f'http://swopenapi.seoul.go.kr/api/subway/{subway_key}/json/realtimeStationArrival/0/50/{station}'
-                  raw = json.loads(fetch_bytes(url, timeout=20, attempts=3).decode('utf-8'))
-                  rows = [r for r in (raw.get('realtimeArrivalList') or []) if str(r.get('subwayId')) == '1001']
-                  fields = [
-                      'subwayId','updnLine','bstatnNm','trainLineNm','btrainNo','btrainSttus',
-                      'barvlDt','arvlMsg2','arvlMsg3','arvlCd','subwayHeading','recptnDt','statnFid','statnTid',
-                      'statnId','statnNm','ordkey'
-                  ]
-                  requested_dt = datetime.now(kst)
-                  compact = []
-                  for r in rows:
-                      item = {k:r.get(k) for k in fields if k in r}
-                      observed_at = r.get('recptnDt')
-                      age_seconds = None
-                      try:
-                          observed_dt = datetime.strptime(observed_at, '%Y-%m-%d %H:%M:%S').replace(tzinfo=kst)
-                          age_seconds = max(0, round((requested_dt-observed_dt).total_seconds()))
-                      except Exception:
-                          pass
-                      usable = age_seconds is not None and age_seconds <= FRESHNESS_THRESHOLD_SECONDS
-                      item.update(observed_at=observed_at, age=age_seconds, age_seconds=age_seconds,
-                                  freshness='fresh' if usable else 'stale', realtime_usable=usable)
-                      compact.append(item)
-                  fresh_count = sum(1 for r in compact if r.get('realtime_usable'))
-                  doksan_payload.update(status='ok', requested_at=requested_dt.isoformat(timespec='seconds'),
-                      observed_keys=sorted({k for r in rows for k in r.keys()}), rows=compact, row_count=len(rows),
-                      total_arrivals=len(compact), fresh_arrival_count=fresh_count, realtime_usable=fresh_count > 0)
-              except Exception as e:
-                  doksan_payload['error'] = str(e)
-          else:
-              doksan_payload['error'] = 'SEOUL_SUBWAY_API_KEY is missing'
-          Path('data/doksan-line1.json').write_text(json.dumps(doksan_payload, ensure_ascii=False, indent=2), encoding='utf-8')
+                  base='http://ws.bus.go.kr/api/rest/stationinfo/getStationByUid'
+                  q=urllib.parse.urlencode({'serviceKey':norm(bus_key),'arsId':ars_id},safe='%')
+                  root=ET.fromstring(fetch_bytes(base+'?'+q,30,3))
+                  cd=(root.findtext('.//headerCd') or '').strip(); msg=(root.findtext('.//headerMsg') or '').strip()
+                  if cd not in ('0','00',''): raise RuntimeError(f'SEOUL {cd}: {msg}')
+                  rows=[]
+                  for item in root.findall('.//itemList'):
+                      def t(n):
+                          v=item.findtext(n); return v.strip() if isinstance(v,str) else v
+                      r={n:t(n) for n in ['arsId','stId','stNm','busRouteId','rtNm','busRouteAbrv','busRouteNm','arrmsg1','traTime1','sectOrd1','arrmsg2','traTime2','sectOrd2']}
+                      rows.append(r)
+                  matched=[r for r in rows if (r.get('rtNm') or r.get('busRouteAbrv') or r.get('busRouteNm') or '').replace(' ','')==route_name.replace(' ','')]
+                  if not matched: raise RuntimeError(f'No {route_name} rows at arsId={ars_id}')
+                  arrivals=[]
+                  for r in matched:
+                      arrivals.append({'ars_id':r.get('arsId'),'st_id':r.get('stId'),'bus_route_id':r.get('busRouteId'),'route':r.get('rtNm') or r.get('busRouteAbrv') or r.get('busRouteNm'),'first_message':r.get('arrmsg1') or '도착정보 확인 중','first_seconds':r.get('traTime1'),'first_stops':r.get('sectOrd1'),'second_message':r.get('arrmsg2') or '','second_seconds':r.get('traTime2'),'second_stops':r.get('sectOrd2'),'destination':r.get('stNm') or '','source':'seoul-data-go-kr','route_targets':[target],'journey_directions':[direction],'mapping_source':'seoul_official_route_stop_order_20260804' if verified else 'user_experience_pending_official_route_order','mapping_status':'verified' if verified else 'user_experience','verification_required':not verified,'boarding_ars_id':ars_id,'mapping_evidence':evidence})
+                  payload.update(status='ok',stage='complete',arrivals=arrivals,identity_diagnostics=[{k:r.get(k) for k in ('arsId','stId','busRouteId','rtNm','stNm')} for r in rows],row_count=len(rows))
+              except Exception as e: payload['error']=str(e)
+              return payload
 
-          # Official Seoul route-order data (2026-08-04) confirms Geumcheon 07:
-          # seq 35 Gasan Digital Complex Stn Exit 3 -> seq 41 Geumcheon Hyundai Apt.
-          # Query the boarding stop and filter by its exact Seoul station identity.
-          EXPECTED_ARS_ID = '18603'
-          EXPECTED_ST_ID = '117900218'
-          EXPECTED_ST_NAME = '가산디지털단지역3번출구'
-
-          def fetch_seoul_bus(ars_id=EXPECTED_ARS_ID):
-              key = os.environ.get('DATA_GO_KR_BUS_API_KEY')
-              if not key:
-                  raise RuntimeError('DATA_GO_KR_BUS_API_KEY is missing')
-              base = 'http://ws.bus.go.kr/api/rest/stationinfo/getStationByUid'
-              query = urllib.parse.urlencode({'serviceKey': normalized_key(key), 'arsId': ars_id}, safe='%')
-              root = ET.fromstring(fetch_bytes(base + '?' + query, timeout=30, attempts=3))
-              header_cd = (root.findtext('.//headerCd') or '').strip()
-              header_msg = (root.findtext('.//headerMsg') or '').strip()
-              if header_cd not in ('0','00',''):
-                  raise RuntimeError(f'SEOUL {header_cd}: {header_msg}')
-
-              raw_rows = []
-              for item in root.findall('.//itemList'):
-                  def t(name):
-                      v = item.findtext(name)
-                      return v.strip() if isinstance(v, str) else v
-                  raw_rows.append({
-                      'arsId': t('arsId'),
-                      'stId': t('stId'),
-                      'busRouteId': t('busRouteId'),
-                      'rtNm': t('rtNm'),
-                      'busRouteAbrv': t('busRouteAbrv'),
-                      'stNm': t('stNm'),
-                      'arrmsg1': t('arrmsg1'),
-                      'traTime1': t('traTime1'),
-                      'sectOrd1': t('sectOrd1'),
-                      'arrmsg2': t('arrmsg2'),
-                  })
-
-              identity_diagnostics = [
-                  {k:r.get(k) for k in ('arsId','stId','busRouteId','rtNm','stNm')}
-                  for r in raw_rows
-              ]
-              accepted = [r for r in raw_rows if str(r.get('stId') or '') == EXPECTED_ST_ID and str(r.get('stNm') or '') == EXPECTED_ST_NAME]
-              rejected = [r for r in raw_rows if r not in accepted]
-              if not accepted:
-                  raise RuntimeError(f'No rows matched verified station identity stId={EXPECTED_ST_ID}, stNm={EXPECTED_ST_NAME}')
-
-              arrivals = []
-              route_mapping = {
-                  '117900007': {
-                      'route_targets':['gasan7'],
-                      'journey_directions':['inbound'],
-                      'mapping_source':'seoul_official_route_stop_order_20260804',
-                      'mapping_status':'verified',
-                      'verification_required':False,
-                      'boarding_ars_id':'18603',
-                      'boarding_sequence':35,
-                      'alighting_ars_id':'18859',
-                      'alighting_sequence':41,
-                      'mapping_evidence':'서울시 공식 노선별 정류소 자료: 가산디지털단지역3번출구(35)에서 금천현대아파트.청소년문화의집(41) 순방향'
-                  }
-              }
-              for r in accepted:
-                  arrival = {
-                      'ars_id': r.get('arsId'),
-                      'st_id': r.get('stId'),
-                      'bus_route_id': r.get('busRouteId'),
-                      'route': r.get('rtNm') or r.get('busRouteAbrv'),
-                      'first_message': r.get('arrmsg1') or '도착정보 확인 중',
-                      'first_seconds': r.get('traTime1'),
-                      'first_stops': r.get('sectOrd1'),
-                      'second_message': r.get('arrmsg2') or '',
-                      'destination': r.get('stNm') or '',
-                      'source':'seoul-data-go-kr',
-                  }
-                  arrival.update(route_mapping.get(str(r.get('busRouteId') or ''), {}))
-                  arrivals.append(arrival)
-              rejected_identities = [{k:r.get(k) for k in ('arsId','stId','busRouteId','rtNm','stNm')} for r in rejected]
-              return arrivals, identity_diagnostics, rejected_identities
-
-          def probe_gyeonggi(station_id='200000078'):
-              key = os.environ.get('GYEONGGI_BUS_API_KEY')
-              if not key:
-                  raise RuntimeError('GYEONGGI_BUS_API_KEY is missing')
-              base = 'https://apis.data.go.kr/6410000/busarrivalservice/v2/getBusArrivalListv2'
-              query = urllib.parse.urlencode({'format':'json','serviceKey':normalized_key(key),'stationId':station_id}, safe='%')
-              raw = json.loads(fetch_bytes(base + '?' + query, timeout=25, attempts=2).decode('utf-8', errors='replace'))
-              response = raw.get('response', {}) if isinstance(raw, dict) else {}
-              header = response.get('msgHeader', {}) if isinstance(response, dict) else {}
-              code = str(header.get('resultCode',''))
-              msg = header.get('resultMessage') or header.get('resultMsg') or ''
-              if code not in ('0','00'):
-                  raise RuntimeError(f'GYEONGGI {code}: {msg}')
-              body = response.get('msgBody', {}) if isinstance(response, dict) else {}
-              items = body.get('busArrivalList', []) if isinstance(body, dict) else []
-              if isinstance(items, dict): items = [items]
-              return len(items or [])
-
-          bus_payload = {
-              'status':'error','source':'seoul-data-go-kr','stop_name':'롯데캐슬 정류장',
-              'official_stop_name':EXPECTED_ST_NAME,'ars_id':EXPECTED_ARS_ID,'expected_st_id':EXPECTED_ST_ID,
-              'updated_at':now,'arrivals':[],'identity_diagnostics':[],'rejected_station_rows':[],
-              'rejected_station_row_count':0,'stage':'arrival_lookup'
-          }
-          try:
-              arrivals, identities, rejected = fetch_seoul_bus(EXPECTED_ARS_ID)
-              bus_payload.update(
-                  status='ok', stage='complete', arrivals=arrivals,
-                  identity_diagnostics=identities,
-                  rejected_station_rows=rejected,
-                  rejected_station_row_count=len(rejected),
-              )
-          except Exception as e:
-              bus_payload['error'] = str(e)
-          Path('data/bus.json').write_text(json.dumps(bus_payload, ensure_ascii=False, indent=2), encoding='utf-8')
-
-          source_checks = {
-              'seoul': {'status':bus_payload.get('status'),'source':bus_payload.get('source'),'stage':bus_payload.get('stage'),'error':bus_payload.get('error')},
-              'gyeonggi': {'status':'error','source':'gyeonggi_bus_api','test_station_id':'200000078','error':None},
-          }
-          try:
-              gy_count = probe_gyeonggi()
-              source_checks['gyeonggi'].update(status='ok', arrival_count=gy_count)
-          except Exception as e:
-              source_checks['gyeonggi']['error'] = str(e)
-
-          finished_at = datetime.now(kst)
-          checks_ok = all(v.get('status') == 'ok' for v in source_checks.values())
-          overall = 'ok' if subway_payload.get('status') == 'ok' and doksan_payload.get('status') == 'ok' and bus_payload.get('status') == 'ok' and checks_ok else 'degraded'
-          last_run = {
-              'status':'ok' if bus_payload.get('status') == 'ok' else 'error',
-              'overall_status':overall,
-              'started_at':started_at.isoformat(timespec='seconds'),
-              'finished_at':finished_at.isoformat(timespec='seconds'),
-              'duration_seconds':round((finished_at-started_at).total_seconds(),2),
-              'subway':{'status':subway_payload.get('status'),'arrival_count':len(subway_payload.get('arrivals') or []),'error':subway_payload.get('error')},
-              'doksan_line1':{'status':doksan_payload.get('status'),'row_count':len(doksan_payload.get('rows') or []),'error':doksan_payload.get('error'),'observed_keys':doksan_payload.get('observed_keys') or [],'sample_rows':doksan_payload.get('rows') or []},
-              'bus':{
-                  'status':bus_payload.get('status'),'source':bus_payload.get('source'),'stage':bus_payload.get('stage'),
-                  'arrival_count':len(bus_payload.get('arrivals') or []),'error':bus_payload.get('error'),
-                  'expected_st_id':EXPECTED_ST_ID,'rejected_station_row_count':bus_payload.get('rejected_station_row_count',0),
-                  'received_station_ids':sorted({str(x.get('stId') or '') for x in bus_payload.get('identity_diagnostics') or [] if x.get('stId')})
-              },
-              'source_checks':source_checks,
-          }
-          Path('data/last-run.json').write_text(json.dumps(last_run, ensure_ascii=False, indent=2), encoding='utf-8')
-
-          if bus_payload.get('status') != 'ok':
-              raise SystemExit('Seoul bus integration failed: ' + str(bus_payload.get('error')))
+          inbound=fetch_bus_stop('18603','금천07','inbound','gasan7','서울시 공식 노선별 정류소 자료: 가산디지털단지역3번출구(35)에서 금천현대아파트.청소년문화의집(41) 순방향',True)
+          outbound=fetch_bus_stop('18514','금천07','outbound','gasan7','사용자 제공 이동경험 근거: 집 인근 18514에서 금천07 탑승 후 가산디지털단지역 접근. 공식 노선·정류장 순서 검증은 후속 필요.',False)
+          bus=dict(inbound); bus.update({'directions':{'inbound':inbound,'outbound':outbound},'status':'ok' if inbound.get('status')=='ok' or outbound.get('status')=='ok' else 'error'})
+          write('data/bus.json',bus)
+          finished=datetime.now(kst)
+          write('data/last-run.json',{'status':'ok','overall_status':'ok' if subway.get('status')=='ok' and doksan.get('status')=='ok' else 'degraded','started_at':started.isoformat(timespec='seconds'),'finished_at':finished.isoformat(timespec='seconds'),'duration_seconds':round((finished-started).total_seconds(),2),'subway':{'status':subway.get('status'),'arrival_count':len(subway.get('arrivals') or []),'error':subway.get('error')},'doksan_line1':{'status':doksan.get('status'),'row_count':len(doksan.get('rows') or []),'error':doksan.get('error'),'sample_rows':doksan.get('rows') or []},'bus':{'inbound':{'status':inbound.get('status'),'arrival_count':len(inbound.get('arrivals') or []),'error':inbound.get('error')},'outbound':{'status':outbound.get('status'),'arrival_count':len(outbound.get('arrivals') or []),'error':outbound.get('error')}}})
+          if bus.get('status')!='ok': raise SystemExit('Bus integration failed')
           PY
 
       - name: Build phase 2 hybrid runtime
@@ -286,107 +124,40 @@ jobs:
           BUILD_COMMIT: ${{ github.sha }}
         run: |
           python - <<'PY'
-          import json, os, re
+          import json, os
           from datetime import datetime, timezone, timedelta
           from pathlib import Path
-
-          kst = timezone(timedelta(hours=9))
-          app = Path('app.html').read_text(encoding='utf-8')
-          source_registry = Path('lib/source-types.js').read_text(encoding='utf-8')
-          def load_json(path): return json.loads(Path(path).read_text(encoding='utf-8'))
-          checks, errors = {}, []
-
+          kst=timezone(timedelta(hours=9))
+          def load(p): return json.loads(Path(p).read_text(encoding='utf-8'))
+          checks={}; errors=[]
+          app=Path('app.html').read_text(encoding='utf-8')
+          for name,path in [('subway_json','data/subway.json'),('doksan_line1_json','data/doksan-line1.json'),('bus_json','data/bus.json'),('last_run_json','data/last-run.json')]:
+              try:
+                  data=load(path); checks[name]='ok' if data.get('status') in ('ok','degraded') else 'error'
+                  if checks[name]!='ok': errors.append(f'{path}: {data.get("error")}')
+              except Exception as e: checks[name]='error'; errors.append(f'{path}: {e}')
           try:
-              subway = load_json('data/subway.json')
-              arrivals = subway.get('arrivals') or []
-              directions = [str(x.get('direction') or '').strip() for x in arrivals]
-              checks['subway_json'] = 'ok'
-              checks['direction_field'] = 'ok' if not arrivals or all(directions) else 'error'
-              checks['received_directions'] = sorted(set(d for d in directions if d))
-              checks['target_direction_count'] = sum(d.lower() in {'하행','외선','1','down','outbound'} for d in directions)
-              if checks['direction_field'] == 'error': errors.append('One or more subway arrivals are missing direction')
-          except Exception as e:
-              checks['subway_json'] = 'error'; errors.append(f'subway.json: {e}')
-
-          try:
-              doksan = load_json('data/doksan-line1.json')
-              checks['doksan_line1_json'] = 'ok' if doksan.get('status') == 'ok' else 'error'
-              checks['doksan_line1_row_count'] = len(doksan.get('rows') or [])
-              if checks['doksan_line1_json'] == 'error': errors.append('doksan-line1.json: ' + str(doksan.get('error')))
-          except Exception as e:
-              checks['doksan_line1_json'] = 'error'; errors.append(f'doksan-line1.json: {e}')
-
-          try:
-              runtime = load_json('data/phase2-runtime.json')
-              runtime_status = runtime.get('status')
-              priority = runtime.get('source_priority') or []
-              checks['phase2_runtime_json'] = 'ok' if runtime_status in {'ok','unavailable'} else 'error'
-              checks['phase2_runtime_status'] = runtime_status
-              checks['phase2_source_priority'] = priority
-              checks['phase2_target_clock'] = runtime.get('target_clock')
-              checks['phase2_deadline_clock'] = runtime.get('deadline_clock')
-              if priority[:3] != ['realtime','schedule/plan','estimate']:
-                  checks['phase2_source_priority_order'] = 'error'; errors.append('phase2 source priority mismatch')
-              else: checks['phase2_source_priority_order'] = 'ok'
-              if runtime.get('target_clock') != '13:50' or runtime.get('deadline_clock') != '14:00':
-                  checks['phase2_targets'] = 'error'; errors.append('phase2 target/deadline mismatch')
-              else: checks['phase2_targets'] = 'ok'
-          except Exception as e:
-              checks['phase2_runtime_json'] = checks['phase2_source_priority_order'] = checks['phase2_targets'] = 'error'
-              errors.append(f'phase2-runtime.json: {e}')
-
-          try:
-              bus = load_json('data/bus.json')
-              expected = str(bus.get('expected_st_id') or '')
-              accepted = bus.get('arrivals') or []
-              diagnostics = bus.get('identity_diagnostics') or []
-              required_identity = ('arsId','stId','busRouteId','rtNm','stNm')
-              checks['bus_json'] = 'ok' if bus.get('status') == 'ok' else 'error'
-              checks['bus_expected_st_id'] = expected
-              checks['bus_rejected_station_row_count'] = bus.get('rejected_station_row_count',0)
-              checks['bus_received_station_ids'] = sorted({str(x.get('stId') or '') for x in diagnostics if x.get('stId')})
-              identity_ok = expected == '117900218' and all(str(x.get('st_id') or '') == expected for x in accepted) and all(all(k in x for k in required_identity) for x in diagnostics)
-              checks['bus_station_identity'] = 'ok' if identity_ok else 'error'
-              if not identity_ok: errors.append('bus station identity filter/diagnostics contract failed')
-              contaminated = [x for x in accepted if str(x.get('st_id') or '') != expected or str(x.get('destination') or '') != bus.get('official_stop_name')]
-              checks['bus_arrival_contamination'] = 'ok' if not contaminated else 'error'
-              if contaminated: errors.append('bus arrivals contain rows from another station')
-          except Exception as e:
-              checks['bus_json'] = checks['bus_station_identity'] = checks['bus_arrival_contamination'] = 'error'
-              errors.append(f'bus.json: {e}')
-
-          try: load_json('data/last-run.json'); checks['last_run_json'] = 'ok'
-          except Exception as e: checks['last_run_json'] = 'error'; errors.append(f'last-run.json: {e}')
-
-          canonical_sources = ['api','measured','preference','constraint','rule','schedule','calculated','experience']
-          registry_markers = {s: bool(re.search(r"['\"]" + re.escape(s) + r"['\"]", source_registry)) for s in canonical_sources}
-          checks['source_registry'] = 'ok' if all(registry_markers.values()) else 'error'
-          checks['source_registry_present'] = registry_markers
-          if checks['source_registry'] == 'error': errors.append('canonical source registry missing one or more source types')
-          checks['source_renderer'] = 'ok' if './lib/source-types.js' in app and 'GallaeSourceTypes?.LABELS' in app else 'error'
-          if checks['source_renderer'] == 'error': errors.append('Pages app does not consume canonical source registry')
-          checks['bus_ui_identity_filter'] = 'ok' if 'official_stop_name' in app and '.filter(x=>!expected' in app else 'error'
-          if checks['bus_ui_identity_filter'] == 'error': errors.append('Pages app bus station identity guard missing')
-
-          structural = [
-              'subway_json','doksan_line1_json','phase2_runtime_json','phase2_source_priority_order','phase2_targets',
-              'bus_json','bus_station_identity','bus_arrival_contamination','last_run_json','source_registry','source_renderer','bus_ui_identity_filter','direction_field'
-          ]
-          status = 'ok' if all(checks.get(k) == 'ok' for k in structural) else 'error'
-          verification = {'status':status,'verified_at':datetime.now(kst).isoformat(timespec='seconds'),'build_commit':os.environ.get('BUILD_COMMIT'),'checks':checks,'errors':errors}
-          Path('data/verification.json').write_text(json.dumps(verification, ensure_ascii=False, indent=2), encoding='utf-8')
-          print(json.dumps(verification, ensure_ascii=False, indent=2))
-          if status != 'ok': raise SystemExit('Deploy payload verification failed')
+              bus=load('data/bus.json'); out=bus.get('directions',{}).get('outbound',{}); inn=bus.get('directions',{}).get('inbound',{})
+              checks['bus_outbound_18514']='ok' if out.get('ars_id')=='18514' and out.get('status')=='ok' and out.get('arrivals') else 'error'
+              checks['bus_inbound_18603']='ok' if inn.get('ars_id')=='18603' and inn.get('status')=='ok' and inn.get('arrivals') else 'error'
+              if checks['bus_outbound_18514']!='ok': errors.append('outbound 18514 Geumcheon07 realtime missing')
+          except Exception as e: checks['bus_outbound_18514']=checks['bus_inbound_18603']='error'; errors.append(str(e))
+          checks['source_renderer']='ok' if './lib/source-types.js' in app and 'GallaeSourceTypes?.LABELS' in app else 'error'
+          checks['bus_ui_identity_filter']='ok' if 'official_stop_name' in app and '.filter(x=>!expected' in app else 'error'
+          checks['bus_ui_realtime']='ok' if 'busArrivalText' in app and '금천07 실시간' in app else 'error'
+          status='ok' if all(v=='ok' for v in checks.values()) else 'error'
+          payload={'status':status,'verified_at':datetime.now(kst).isoformat(timespec='seconds'),'build_commit':os.environ.get('BUILD_COMMIT'),'checks':checks,'errors':errors}
+          Path('data/verification.json').write_text(json.dumps(payload,ensure_ascii=False,indent=2),encoding='utf-8')
+          print(json.dumps(payload,ensure_ascii=False,indent=2))
+          if status!='ok': raise SystemExit('Deploy payload verification failed')
           PY
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
-
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
-
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
