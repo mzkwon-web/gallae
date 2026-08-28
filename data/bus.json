@@ -5,17 +5,17 @@
   "official_stop_name": "가산디지털단지역3번출구",
   "ars_id": "18603",
   "expected_st_id": "117900218",
-  "updated_at": "2026-08-27T20:43:17+09:00",
+  "updated_at": "2026-08-28T10:30:50+09:00",
   "arrivals": [
     {
       "ars_id": "18603",
       "st_id": "117900218",
       "bus_route_id": "117900007",
       "route": "금천07",
-      "first_message": "19분후[9번째 전]",
-      "first_seconds": "1161",
-      "first_stops": "26",
-      "second_message": "35분후[18번째 전]",
+      "first_message": "9분후[4번째 전]",
+      "first_seconds": "580",
+      "first_stops": "31",
+      "second_message": "26분후[12번째 전]",
       "destination": "가산디지털단지역3번출구",
       "source": "seoul-data-go-kr",
       "route_targets": [
