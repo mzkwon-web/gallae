@@ -1,9 +1,9 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-08-30T00:52:17+09:00",
-  "finished_at": "2026-08-30T00:52:21+09:00",
-  "duration_seconds": 4.04,
+  "started_at": "2026-08-30T01:02:24+09:00",
+  "finished_at": "2026-08-30T01:02:28+09:00",
+  "duration_seconds": 3.96,
   "subway": {
     "status": "ok",
     "arrival_count": 0,
@@ -11,41 +11,9 @@
   },
   "doksan_line1": {
     "status": "ok",
-    "row_count": 1,
+    "row_count": 0,
     "error": null,
-    "sample_rows": [
-      {
-        "subwayId": "1001",
-        "updnLine": "하행",
-        "bstatnNm": "광운대",
-        "trainLineNm": "광운대행 - 금천구청방면 (막차)",
-        "btrainNo": "0969",
-        "btrainSttus": "일반",
-        "barvlDt": "0",
-        "arvlMsg2": "[24]번째 전역 (광운대)",
-        "arvlMsg3": "광운대",
-        "arvlCd": "99",
-        "subwayHeading": null,
-        "recptnDt": "2026-08-30 00:41:39",
-        "statnFid": "1001080142",
-        "statnTid": "1001080144",
-        "statnId": "1001080143",
-        "statnNm": "독산",
-        "ordkey": "11024광운대0",
-        "destination": "광운대",
-        "direction": "하행",
-        "train_line": "광운대행 - 금천구청방면 (막차)",
-        "arrival_message": "[24]번째 전역 (광운대)",
-        "current_location": "광운대",
-        "train_no": "0969",
-        "arrival_seconds": "0",
-        "observed_at": "2026-08-30 00:41:39",
-        "age": 640,
-        "age_seconds": 640,
-        "freshness": "stale",
-        "realtime_usable": false
-      }
-    ]
+    "sample_rows": []
   },
   "bus": {
     "inbound": {
