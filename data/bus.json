@@ -3,7 +3,7 @@
   "source": "seoul-data-go-kr",
   "ars_id": "18603",
   "route": "금천07",
-  "updated_at": "2026-08-29T23:32:14+09:00",
+  "updated_at": "2026-08-29T23:42:03+09:00",
   "arrivals": [
     {
       "ars_id": "18603",
@@ -50,7 +50,7 @@
       "source": "seoul-data-go-kr",
       "ars_id": "18603",
       "route": "금천07",
-      "updated_at": "2026-08-29T23:32:14+09:00",
+      "updated_at": "2026-08-29T23:42:03+09:00",
       "arrivals": [
         {
           "ars_id": "18603",
@@ -97,7 +97,7 @@
       "source": "seoul-data-go-kr",
       "ars_id": "18514",
       "route": "금천07",
-      "updated_at": "2026-08-29T23:32:14+09:00",
+      "updated_at": "2026-08-29T23:42:03+09:00",
       "arrivals": [
         {
           "ars_id": "18514",
