@@ -1,12 +1,12 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-08-30T04:52:14+09:00",
-  "finished_at": "2026-08-30T04:52:18+09:00",
-  "duration_seconds": 3.91,
+  "started_at": "2026-08-30T05:02:16+09:00",
+  "finished_at": "2026-08-30T05:02:19+09:00",
+  "duration_seconds": 2.93,
   "subway": {
     "status": "ok",
-    "arrival_count": 3,
+    "arrival_count": 4,
     "error": null
   },
   "doksan_line1": {
@@ -40,10 +40,10 @@
         "train_no": "0402",
         "arrival_seconds": "0",
         "observed_at": "2026-08-30 04:51:47",
-        "age": 30,
-        "age_seconds": 30,
-        "freshness": "fresh",
-        "realtime_usable": true
+        "age": 631,
+        "age_seconds": 631,
+        "freshness": "stale",
+        "realtime_usable": false
       },
       {
         "subwayId": "1001",
@@ -71,10 +71,10 @@
         "train_no": "0602",
         "arrival_seconds": "0",
         "observed_at": "2026-08-30 04:51:47",
-        "age": 30,
-        "age_seconds": 30,
-        "freshness": "fresh",
-        "realtime_usable": true
+        "age": 631,
+        "age_seconds": 631,
+        "freshness": "stale",
+        "realtime_usable": false
       },
       {
         "subwayId": "1001",
@@ -102,8 +102,8 @@
         "train_no": "0607",
         "arrival_seconds": "0",
         "observed_at": "2026-08-30 04:43:18",
-        "age": 539,
-        "age_seconds": 539,
+        "age": 1140,
+        "age_seconds": 1140,
         "freshness": "stale",
         "realtime_usable": false
       },
@@ -133,8 +133,8 @@
         "train_no": "0407",
         "arrival_seconds": "0",
         "observed_at": "2026-08-30 04:43:18",
-        "age": 539,
-        "age_seconds": 539,
+        "age": 1140,
+        "age_seconds": 1140,
         "freshness": "stale",
         "realtime_usable": false
       }
