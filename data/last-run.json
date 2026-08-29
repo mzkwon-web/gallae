@@ -1,19 +1,51 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-08-30T04:32:00+09:00",
-  "finished_at": "2026-08-30T04:32:05+09:00",
-  "duration_seconds": 4.46,
+  "started_at": "2026-08-30T04:42:11+09:00",
+  "finished_at": "2026-08-30T04:42:13+09:00",
+  "duration_seconds": 2.67,
   "subway": {
     "status": "ok",
-    "arrival_count": 0,
+    "arrival_count": 2,
     "error": null
   },
   "doksan_line1": {
     "status": "ok",
-    "row_count": 0,
+    "row_count": 1,
     "error": null,
-    "sample_rows": []
+    "sample_rows": [
+      {
+        "subwayId": "1001",
+        "updnLine": "상행",
+        "bstatnNm": "청량리",
+        "trainLineNm": "청량리행 - 가산디지털단지방면",
+        "btrainNo": "0602",
+        "btrainSttus": "일반",
+        "barvlDt": "0",
+        "arvlMsg2": "[26]번째 전역 (천안)",
+        "arvlMsg3": "천안",
+        "arvlCd": "99",
+        "subwayHeading": null,
+        "recptnDt": "2026-08-30 04:41:31",
+        "statnFid": "1001080144",
+        "statnTid": "1001080142",
+        "statnId": "1001080143",
+        "statnNm": "독산",
+        "ordkey": "01026청량리0",
+        "destination": "청량리",
+        "direction": "상행",
+        "train_line": "청량리행 - 가산디지털단지방면",
+        "arrival_message": "[26]번째 전역 (천안)",
+        "current_location": "천안",
+        "train_no": "0602",
+        "arrival_seconds": "0",
+        "observed_at": "2026-08-30 04:41:31",
+        "age": 41,
+        "age_seconds": 41,
+        "freshness": "fresh",
+        "realtime_usable": true
+      }
+    ]
   },
   "bus": {
     "inbound": {
