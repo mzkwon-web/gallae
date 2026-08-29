@@ -3,7 +3,7 @@
   "source": "seoul-data-go-kr",
   "ars_id": "18603",
   "route": "금천07",
-  "updated_at": "2026-08-30T06:42:22+09:00",
+  "updated_at": "2026-08-30T06:52:14+09:00",
   "arrivals": [
     {
       "ars_id": "18603",
@@ -11,11 +11,11 @@
       "bus_route_id": "117900007",
       "route": "금천07",
       "first_message": "2분후[2번째 전]",
-      "first_seconds": "160",
+      "first_seconds": "158",
       "first_stops": "33",
-      "second_message": "15분후[9번째 전]",
-      "second_seconds": "945",
-      "second_stops": "26",
+      "second_message": "19분후[14번째 전]",
+      "second_seconds": "1161",
+      "second_stops": "21",
       "destination": "가산디지털단지역3번출구",
       "source": "seoul-data-go-kr",
       "route_targets": [
@@ -50,7 +50,7 @@
       "source": "seoul-data-go-kr",
       "ars_id": "18603",
       "route": "금천07",
-      "updated_at": "2026-08-30T06:42:22+09:00",
+      "updated_at": "2026-08-30T06:52:14+09:00",
       "arrivals": [
         {
           "ars_id": "18603",
@@ -58,11 +58,11 @@
           "bus_route_id": "117900007",
           "route": "금천07",
           "first_message": "2분후[2번째 전]",
-          "first_seconds": "160",
+          "first_seconds": "158",
           "first_stops": "33",
-          "second_message": "15분후[9번째 전]",
-          "second_seconds": "945",
-          "second_stops": "26",
+          "second_message": "19분후[14번째 전]",
+          "second_seconds": "1161",
+          "second_stops": "21",
           "destination": "가산디지털단지역3번출구",
           "source": "seoul-data-go-kr",
           "route_targets": [
@@ -97,15 +97,15 @@
       "source": "seoul-data-go-kr",
       "ars_id": "18514",
       "route": "금천07",
-      "updated_at": "2026-08-30T06:42:22+09:00",
+      "updated_at": "2026-08-30T06:52:14+09:00",
       "arrivals": [
         {
           "ars_id": "18514",
           "st_id": "117900109",
           "bus_route_id": "117900007",
           "route": "금천07",
-          "first_message": "3분후[4번째 전]",
-          "first_seconds": "253",
+          "first_message": "7분후[4번째 전]",
+          "first_seconds": "454",
           "first_stops": "5",
           "second_message": "출발대기",
           "second_seconds": "0",
