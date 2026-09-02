@@ -1,9 +1,9 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-09-03T03:37:21+09:00",
-  "finished_at": "2026-09-03T03:37:24+09:00",
-  "duration_seconds": 3.33,
+  "started_at": "2026-09-03T03:47:54+09:00",
+  "finished_at": "2026-09-03T03:47:59+09:00",
+  "duration_seconds": 4.32,
   "subway": {
     "status": "ok",
     "arrival_count": 0,
