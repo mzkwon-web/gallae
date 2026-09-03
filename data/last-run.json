@@ -1,51 +1,19 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-09-04T00:55:12+09:00",
-  "finished_at": "2026-09-04T00:55:15+09:00",
-  "duration_seconds": 3.37,
+  "started_at": "2026-09-04T01:20:55+09:00",
+  "finished_at": "2026-09-04T01:20:58+09:00",
+  "duration_seconds": 3.32,
   "subway": {
     "status": "ok",
-    "arrival_count": 2,
+    "arrival_count": 0,
     "error": null
   },
   "doksan_line1": {
     "status": "ok",
-    "row_count": 1,
+    "row_count": 0,
     "error": null,
-    "sample_rows": [
-      {
-        "subwayId": "1001",
-        "updnLine": "하행",
-        "bstatnNm": "서울",
-        "trainLineNm": "서울행 - 금천구청방면 (막차)",
-        "btrainNo": "0907",
-        "btrainSttus": "일반",
-        "barvlDt": "0",
-        "arvlMsg2": "[12]번째 전역 (종각)",
-        "arvlMsg3": "종각",
-        "arvlCd": "99",
-        "subwayHeading": null,
-        "recptnDt": "2026-09-04 00:54:51",
-        "statnFid": "1001080142",
-        "statnTid": "1001080144",
-        "statnId": "1001080143",
-        "statnNm": "독산",
-        "ordkey": "11012서울0",
-        "destination": "서울",
-        "direction": "하행",
-        "train_line": "서울행 - 금천구청방면 (막차)",
-        "arrival_message": "[12]번째 전역 (종각)",
-        "current_location": "종각",
-        "train_no": "0907",
-        "arrival_seconds": "0",
-        "observed_at": "2026-09-04 00:54:51",
-        "age": 24,
-        "age_seconds": 24,
-        "freshness": "fresh",
-        "realtime_usable": true
-      }
-    ]
+    "sample_rows": []
   },
   "bus": {
     "inbound": {
