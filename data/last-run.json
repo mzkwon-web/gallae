@@ -1,9 +1,9 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-09-05T01:20:30+09:00",
-  "finished_at": "2026-09-05T01:20:35+09:00",
-  "duration_seconds": 4.48,
+  "started_at": "2026-09-05T01:35:19+09:00",
+  "finished_at": "2026-09-05T01:35:24+09:00",
+  "duration_seconds": 4.64,
   "subway": {
     "status": "ok",
     "arrival_count": 0,
@@ -11,41 +11,9 @@
   },
   "doksan_line1": {
     "status": "ok",
-    "row_count": 1,
+    "row_count": 0,
     "error": null,
-    "sample_rows": [
-      {
-        "subwayId": "1001",
-        "updnLine": "하행",
-        "bstatnNm": "서울",
-        "trainLineNm": "서울행 - 금천구청방면 (막차)",
-        "btrainNo": "0907",
-        "btrainSttus": "일반",
-        "barvlDt": "0",
-        "arvlMsg2": "[10]번째 전역 (서울)",
-        "arvlMsg3": "서울",
-        "arvlCd": "99",
-        "subwayHeading": null,
-        "recptnDt": "2026-09-05 01:01:27",
-        "statnFid": "1001080142",
-        "statnTid": "1001080144",
-        "statnId": "1001080143",
-        "statnNm": "독산",
-        "ordkey": "11010서울0",
-        "destination": "서울",
-        "direction": "하행",
-        "train_line": "서울행 - 금천구청방면 (막차)",
-        "arrival_message": "[10]번째 전역 (서울)",
-        "current_location": "서울",
-        "train_no": "0907",
-        "arrival_seconds": "0",
-        "observed_at": "2026-09-05 01:01:27",
-        "age": 1146,
-        "age_seconds": 1146,
-        "freshness": "stale",
-        "realtime_usable": false
-      }
-    ]
+    "sample_rows": []
   },
   "bus": {
     "inbound": {
