@@ -1,12 +1,12 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-09-05T01:03:49+09:00",
-  "finished_at": "2026-09-05T01:03:54+09:00",
-  "duration_seconds": 5.29,
+  "started_at": "2026-09-05T01:20:30+09:00",
+  "finished_at": "2026-09-05T01:20:35+09:00",
+  "duration_seconds": 4.48,
   "subway": {
     "status": "ok",
-    "arrival_count": 1,
+    "arrival_count": 0,
     "error": null
   },
   "doksan_line1": {
@@ -40,8 +40,8 @@
         "train_no": "0907",
         "arrival_seconds": "0",
         "observed_at": "2026-09-05 01:01:27",
-        "age": 145,
-        "age_seconds": 145,
+        "age": 1146,
+        "age_seconds": 1146,
         "freshness": "stale",
         "realtime_usable": false
       }
