@@ -1,9 +1,9 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-09-06T00:44:59+09:00",
-  "finished_at": "2026-09-06T00:45:03+09:00",
-  "duration_seconds": 4.61,
+  "started_at": "2026-09-06T00:51:56+09:00",
+  "finished_at": "2026-09-06T00:52:00+09:00",
+  "duration_seconds": 3.62,
   "subway": {
     "status": "ok",
     "arrival_count": 0,
@@ -40,8 +40,8 @@
         "train_no": "0969",
         "arrival_seconds": "0",
         "observed_at": "2026-09-06 00:41:46",
-        "age": 195,
-        "age_seconds": 195,
+        "age": 613,
+        "age_seconds": 613,
         "freshness": "stale",
         "realtime_usable": false
       }
