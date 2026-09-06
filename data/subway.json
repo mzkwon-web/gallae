@@ -1,8 +1,8 @@
 {
   "status": "ok",
   "station": "가산디지털단지",
-  "updated_at": "2026-09-07T02:26:15+09:00",
-  "requested_at": "2026-09-07T02:26:16+09:00",
+  "updated_at": "2026-09-07T02:34:11+09:00",
+  "requested_at": "2026-09-07T02:34:12+09:00",
   "freshness_threshold_seconds": 60,
   "arrivals": [],
   "rows": [],
