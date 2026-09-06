@@ -3,7 +3,7 @@
   "source": "seoul-data-go-kr",
   "ars_id": "18603",
   "route": "금천07",
-  "updated_at": "2026-09-06T19:03:41+09:00",
+  "updated_at": "2026-09-06T19:19:01+09:00",
   "arrivals": [
     {
       "ars_id": "18603",
@@ -11,10 +11,10 @@
       "bus_route_id": "117900007",
       "route": "금천07",
       "first_message": "곧 도착",
-      "first_seconds": "53",
+      "first_seconds": "5",
       "first_stops": "35",
       "second_message": "14분후[9번째 전]",
-      "second_seconds": "848",
+      "second_seconds": "859",
       "second_stops": "26",
       "destination": "가산디지털단지역3번출구",
       "source": "seoul-data-go-kr",
@@ -50,7 +50,7 @@
       "source": "seoul-data-go-kr",
       "ars_id": "18603",
       "route": "금천07",
-      "updated_at": "2026-09-06T19:03:41+09:00",
+      "updated_at": "2026-09-06T19:19:01+09:00",
       "arrivals": [
         {
           "ars_id": "18603",
@@ -58,10 +58,10 @@
           "bus_route_id": "117900007",
           "route": "금천07",
           "first_message": "곧 도착",
-          "first_seconds": "53",
+          "first_seconds": "5",
           "first_stops": "35",
           "second_message": "14분후[9번째 전]",
-          "second_seconds": "848",
+          "second_seconds": "859",
           "second_stops": "26",
           "destination": "가산디지털단지역3번출구",
           "source": "seoul-data-go-kr",
@@ -97,7 +97,7 @@
       "source": "seoul-data-go-kr",
       "ars_id": "18514",
       "route": "금천07",
-      "updated_at": "2026-09-06T19:03:41+09:00",
+      "updated_at": "2026-09-06T19:19:01+09:00",
       "arrivals": [
         {
           "ars_id": "18514",
