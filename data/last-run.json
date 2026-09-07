@@ -1,17 +1,17 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-09-08T04:47:01+09:00",
-  "finished_at": "2026-09-08T04:47:06+09:00",
-  "duration_seconds": 4.86,
+  "started_at": "2026-09-08T04:54:29+09:00",
+  "finished_at": "2026-09-08T04:54:33+09:00",
+  "duration_seconds": 4.54,
   "subway": {
     "status": "ok",
-    "arrival_count": 2,
+    "arrival_count": 4,
     "error": null
   },
   "doksan_line1": {
     "status": "ok",
-    "row_count": 2,
+    "row_count": 3,
     "error": null,
     "sample_rows": [
       {
@@ -40,10 +40,41 @@
         "train_no": "0402",
         "arrival_seconds": "0",
         "observed_at": "2026-09-08 04:46:46",
-        "age": 18,
-        "age_seconds": 18,
-        "freshness": "fresh",
-        "realtime_usable": true
+        "age": 466,
+        "age_seconds": 466,
+        "freshness": "stale",
+        "realtime_usable": false
+      },
+      {
+        "subwayId": "1001",
+        "updnLine": "상행",
+        "bstatnNm": "광운대",
+        "trainLineNm": "광운대행 - 가산디지털단지방면",
+        "btrainNo": "0604",
+        "btrainSttus": "일반",
+        "barvlDt": "0",
+        "arvlMsg2": "[33]번째 전역 (신창)",
+        "arvlMsg3": "신창",
+        "arvlCd": "99",
+        "subwayHeading": null,
+        "recptnDt": "2026-09-08 04:46:46",
+        "statnFid": "1001080144",
+        "statnTid": "1001080142",
+        "statnId": "1001080143",
+        "statnNm": "독산",
+        "ordkey": "02033광운대0",
+        "destination": "광운대",
+        "direction": "상행",
+        "train_line": "광운대행 - 가산디지털단지방면",
+        "arrival_message": "[33]번째 전역 (신창)",
+        "current_location": "신창",
+        "train_no": "0604",
+        "arrival_seconds": "0",
+        "observed_at": "2026-09-08 04:46:46",
+        "age": 466,
+        "age_seconds": 466,
+        "freshness": "stale",
+        "realtime_usable": false
       },
       {
         "subwayId": "1001",
@@ -71,8 +102,8 @@
         "train_no": "0605",
         "arrival_seconds": "0",
         "observed_at": "2026-09-08 04:44:27",
-        "age": 157,
-        "age_seconds": 157,
+        "age": 605,
+        "age_seconds": 605,
         "freshness": "stale",
         "realtime_usable": false
       }
