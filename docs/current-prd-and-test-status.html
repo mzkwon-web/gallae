@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>갈래(GALLE) PoC 현재 기준 PRD 및 테스트 진행사항</title>
+  <style>
+    :root {
+      --bg: #f6f6f2;
+      --paper: #fff;
+      --ink: #171717;
+      --muted: #666;
+      --line: #ddd;
+      --accent: #111;
+      --soft: #f0f0ea;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.65;
+    }
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 32px 18px 80px;
+    }
+    article {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: clamp(22px, 5vw, 52px);
+      box-shadow: 0 12px 30px rgba(0,0,0,.04);
+    }
+    .top {
+      margin-bottom: 28px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    h1 {
+      margin: 0 0 18px;
+      font-size: clamp(30px, 6vw, 52px);
+      line-height: 1.08;
+      letter-spacing: -0.04em;
+    }
+    h2 {
+      margin: 42px 0 14px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line);
+      font-size: 26px;
+      letter-spacing: -0.02em;
+    }
+    h3 {
+      margin: 28px 0 10px;
+      font-size: 20px;
+    }
+    h4 {
+      margin: 22px 0 8px;
+      font-size: 17px;
+    }
+    p { margin: 10px 0; }
+    a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    blockquote {
+      margin: 18px 0;
+      padding: 14px 18px;
+      border-left: 4px solid var(--accent);
+      background: var(--soft);
+      border-radius: 10px;
+      font-weight: 700;
+    }
+    code {
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: var(--soft);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .92em;
+    }
+    pre {
+      overflow-x: auto;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: #111;
+      color: #f8f8f8;
+      line-height: 1.5;
+    }
+    pre code {
+      padding: 0;
+      background: transparent;
+      color: inherit;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+    }
+    th {
+      background: var(--soft);
+      text-align: left;
+    }
+    ul, ol { padding-left: 24px; }
+    li { margin: 4px 0; }
+    .loading, .error {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--soft);
+      color: var(--muted);
+    }
+    .error { color: #9a3412; }
+    @media print {
+      body { background: #fff; }
+      main { max-width: none; padding: 0; }
+      article { border: 0; box-shadow: none; border-radius: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <article>
+      <div class="top">GALLE PoC documentation · Markdown source: <a href="./current-prd-and-test-status.md">current-prd-and-test-status.md</a></div>
+      <div id="content" class="loading">문서를 불러오는 중입니다.</div>
+    </article>
+  </main>
+  <script>
+    const escapeHtml = (value) => String(value)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+
+    const inline = (value) => escapeHtml(value)
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+    function tableToHtml(lines) {
+      const rows = lines
+        .filter((line) => !/^\s*\|?\s*-{3,}/.test(line.replace(/\|/g, '').trim()))
+        .map((line) => line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((cell) => inline(cell.trim())));
+      if (!rows.length) return '';
+      const head = rows[0].map((cell) => `<th>${cell}</th>`).join('');
+      const body = rows.slice(1).map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join('')}</tr>`).join('');
+      return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+    }
+
+    function markdownToHtml(markdown) {
+      const lines = markdown.replace(/\r\n/g, '\n').split('\n');
+      const html = [];
+      let list = null;
+      let paragraph = [];
+      let table = [];
+      let code = null;
+
+      const flushParagraph = () => {
+        if (paragraph.length) {
+          html.push(`<p>${inline(paragraph.join(' '))}</p>`);
+          paragraph = [];
+        }
+      };
+      const flushList = () => {
+        if (list) {
+          html.push(`</${list}>`);
+          list = null;
+        }
+      };
+      const flushTable = () => {
+        if (table.length) {
+          html.push(tableToHtml(table));
+          table = [];
+        }
+      };
+
+      for (const raw of lines) {
+        const line = raw.trimEnd();
+        if (code !== null) {
+          if (line.startsWith('```')) {
+            html.push(`<pre><code>${escapeHtml(code.join('\n'))}</code></pre>`);
+            code = null;
+          } else {
+            code.push(raw);
+          }
+          continue;
+        }
+        if (line.startsWith('```')) {
+          flushParagraph(); flushList(); flushTable();
+          code = [];
+          continue;
+        }
+        if (!line.trim()) {
+          flushParagraph(); flushList(); flushTable();
+          continue;
+        }
+        if (/^\|.*\|$/.test(line.trim())) {
+          flushParagraph(); flushList();
+          table.push(line);
+          continue;
+        }
+        flushTable();
+        const heading = line.match(/^(#{1,4})\s+(.+)$/);
+        if (heading) {
+          flushParagraph(); flushList();
+          const level = heading[1].length;
+          html.push(`<h${level}>${inline(heading[2])}</h${level}>`);
+          continue;
+        }
+        if (line.startsWith('> ')) {
+          flushParagraph(); flushList();
+          html.push(`<blockquote>${inline(line.slice(2))}</blockquote>`);
+          continue;
+        }
+        const unordered = line.match(/^-\s+(.+)$/);
+        if (unordered) {
+          flushParagraph();
+          if (list !== 'ul') {
+            flushList();
+            html.push('<ul>');
+            list = 'ul';
+          }
+          html.push(`<li>${inline(unordered[1])}</li>`);
+          continue;
+        }
+        const ordered = line.match(/^\d+\.\s+(.+)$/);
+        if (ordered) {
+          flushParagraph();
+          if (list !== 'ol') {
+            flushList();
+            html.push('<ol>');
+            list = 'ol';
+          }
+          html.push(`<li>${inline(ordered[1])}</li>`);
+          continue;
+        }
+        flushList();
+        paragraph.push(line);
+      }
+      flushParagraph(); flushList(); flushTable();
+      return html.join('\n');
+    }
+
+    fetch('./current-prd-and-test-status.md', { cache: 'no-store' })
+      .then((response) => {
+        if (!response.ok) throw new Error(`문서 로드 실패: ${response.status}`);
+        return response.text();
+      })
+      .then((markdown) => {
+        document.getElementById('content').className = '';
+        document.getElementById('content').innerHTML = markdownToHtml(markdown);
+      })
+      .catch((error) => {
+        document.getElementById('content').className = 'error';
+        document.getElementById('content').textContent = error.message;
+      });
+  </script>
+</body>
+</html>
