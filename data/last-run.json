@@ -1,12 +1,12 @@
 {
   "status": "ok",
   "overall_status": "ok",
-  "started_at": "2026-11-10T04:43:47+09:00",
-  "finished_at": "2026-11-10T04:43:50+09:00",
-  "duration_seconds": 3.31,
+  "started_at": "2026-11-11T02:44:44+09:00",
+  "finished_at": "2026-11-11T02:44:49+09:00",
+  "duration_seconds": 5.25,
   "subway": {
     "status": "ok",
-    "arrival_count": 2,
+    "arrival_count": 0,
     "error": null
   },
   "doksan_line1": {
